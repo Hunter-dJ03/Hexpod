@@ -1,11 +1,14 @@
 #include "arduinoController.h"
+#include "rs_timed_loop.h"
 #include "hexapodLeg.h"
 #include <iostream>
 
 using namespace std;
 
+RSTimedLoop rsLoop(1);
 ArduinoController arduino("/dev/ttyACM0", 115200);
-HexapodLeg leg(1, arduino);
+HexapodLeg leg(1, arduino, rsLoop);
+
 
 void parseCommand(string command);
 

@@ -13,7 +13,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Add executables
-add_executable(arduinoConnection arduinoConnection.cpp arduinoController.cpp hexapodLeg.cpp)
+add_executable(arduinoConnection arduinoConnection.cpp arduinoController.cpp hexapodLeg.cpp rs_timed_loop.cpp)
 add_executable(readArduino readArduino.cpp arduinoController.cpp)
 
 # Link libraries to executables

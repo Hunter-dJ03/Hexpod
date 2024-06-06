@@ -2,6 +2,7 @@
 #define HEXAPODLEG_H
 
 #include "arduinoController.h"
+#include "rs_timed_loop.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -12,13 +13,13 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, ArduinoController& arduino);
+    HexapodLeg(unsigned int id, ArduinoController& arduino, RSTimedLoop& rsLoop);
     ~HexapodLeg();
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);
 
 
-    Eigen::MatrixXd getInverseJacobian(float coxa, float femur, float tibiaz);
+    Eigen::MatrixXd getInverseJacobian();
 
     Eigen::Vector3d doIK(float x, float y, float z);
     Eigen::Vector3d doFK(float coxa, float femur, float tibia);
@@ -34,15 +35,16 @@ public:
 
     int id;
     Eigen::Vector3d pos;
-    Eigen::Vector3d angs;
+    Eigen::Vector3d currentAngles;
 
 private:
-    void setAngsOverload(float coxa, float femur, float tibia);
-    void moveToPosOverload(float x, float y, float z);
+    void sendAngs();
+    void sendPos(float x, float y, float z);
 
     float constrain(float x, float a, float b);
 
     ArduinoController& arduino;
+    RSTimedLoop& rsLoop;
 
     float coxaX = 44.925;
     float coxaZ = 10.650;
