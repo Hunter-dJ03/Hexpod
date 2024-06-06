@@ -14,6 +14,8 @@ public:
 private:
     chrono::milliseconds interval;  // Real Time step interval
     chrono::time_point<chrono::high_resolution_clock> next_time;    // Time to delay until
+        chrono::time_point<chrono::high_resolution_clock> start_time;    // Time to delay until
+
 };
 
 #endif // RS_TIMED_LOOP_H

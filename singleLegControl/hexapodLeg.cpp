@@ -36,7 +36,7 @@ Eigen::MatrixXd HexapodLeg::getInverseJacobian()
     Jac(2,1) = 0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]);
     Jac(2,2) = 0.221426*cos(currentAngles[1] + currentAngles[2]);
 
-    cout << "Jac" << endl << Jac << endl;
+    // cout << "Jac" << endl << Jac << endl;
 
     return Jac.completeOrthogonalDecomposition().pseudoInverse();;
 }
@@ -125,32 +125,22 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     while (testingJac <= 10000) {
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
-        cout<<endl<<testingJac;
+        
         desiredSpatialVelocity << 0, 0, -0.05;
             // -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
             // radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
-
-
-        cout <<endl<< "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
-
         jacobianPseudoInverse = getInverseJacobian();
-
-        cout <<endl<< "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
-
-
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
-
-        cout <<"Current Angles" << endl<< currentAngles <<endl;
-
-        cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-        
         nextAngles = currentAngles + desiredAngularVelocities*0.001;
-
-        cout << "Next Angles" << endl << nextAngles <<endl;
-
         auto nextPos = doFK(currentAngles[0], currentAngles[1], currentAngles[2]);
 
-        cout << "Next Pos" << endl << nextPos <<endl;
+        // cout << endl << testingJac << endl;
+        // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
+        // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+        // cout << "Current Angles" << endl<< currentAngles <<endl;
+        // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+        // cout << "Next Angles" << endl << nextAngles <<endl;
+        // cout << "Next Pos" << endl << nextPos <<endl;
 
         setAngs(nextAngles);
 
