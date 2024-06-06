@@ -36,7 +36,9 @@ Eigen::MatrixXd HexapodLeg::getInverseJacobian()
     Jac(2,1) = 0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]);
     Jac(2,2) = 0.221426*cos(currentAngles[1] + currentAngles[2]);
 
-    return Jac;
+    cout << "Jac" << endl << Jac << endl;
+
+    return Jac.completeOrthogonalDecomposition().pseudoInverse();;
 }
 
 // Perform inverse kinematics to get desired control engles
@@ -68,16 +70,19 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z)
 
     Eigen::Vector3d angs = {th1, th2, th3};
 
-    return angs*180/M_PI;
+    return angs;
 }
 
 // Perform forward kinematics of the hexapod leg to get end affector position
 Eigen::Vector3d HexapodLeg::doFK(float coxa, float femur, float tibia)
 {
-    Eigen::Vector3d pos = {
+    femur*=-1;
+    femur+=2*M_PI;
+
+    Eigen::Vector3d pos(
         cos(coxa) * (0.221426 * cos(femur + tibia) + 0.1183145 * cos(femur) + 0.044925),
         sin(coxa) * (0.221426 * cos(femur + tibia) + 0.1183145 * cos(femur) + 0.044925),
-        0.221426 * sin(femur + tibia) + 0.1183145 * sin(femur) + 0.01065};
+        0.221426 * sin(femur + tibia) + 0.1183145 * sin(femur) + 0.01065);
 
     return pos;
 }
@@ -90,36 +95,66 @@ void HexapodLeg::moveToZero()
 // Move to basic standing position
 void HexapodLeg::moveToBasic()
 {
-    setAngs(0, 40, 102);
+    setAngs(0*M_PI/180, 40*M_PI/180, 102*M_PI/180);
 }
 // Move to position that should fold back past limit when power disabled
 void HexapodLeg::moveToOff()
 {
-    setAngs(0, 90, 163);
+    setAngs(0*M_PI/180, 90*M_PI/180, 163*M_PI/180);
 }
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
     float radius = 0.05;  // meters
-    double angular_velocity = 0.5 * M_PI;   // HZ
+    double angular_velocity = 1 * M_PI;   // HZ
     float testingJac = 0;
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
+    Eigen::Vector3d nextAngles;
     // Eigen::Matrix3d Jacobian;
     Eigen::MatrixXd jacobianPseudoInverse;
     // long currentTime;
 
-    while (testingJac <= 1000 / angular_velocity * M_PI) {
-        // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
+    // Set Start Position
+    // Eigen::Vector3d posik(220, 0, -170);
+    // moveToPos(posik);
 
-        desiredSpatialVelocity << 0,
-            -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
-            radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
+    setAngs(0, 134.072/2*M_PI/180, 143/2*M_PI/180);
+
+    sleep_for(chrono::milliseconds(2000));
+
+    while (testingJac <= 10000) {
+        // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
+        cout<<endl<<testingJac;
+        desiredSpatialVelocity << 0, 0, -0.05;
+            // -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
+            // radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
+
+
+        cout <<endl<< "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
 
         jacobianPseudoInverse = getInverseJacobian();
+
+        cout <<endl<< "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+
+
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
 
-        testingJac++;
+        cout <<"Current Angles" << endl<< currentAngles <<endl;
+
+        cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+        
+        nextAngles = currentAngles + desiredAngularVelocities*0.001;
+
+        cout << "Next Angles" << endl << nextAngles <<endl;
+
+        auto nextPos = doFK(currentAngles[0], currentAngles[1], currentAngles[2]);
+
+        cout << "Next Pos" << endl << nextPos <<endl;
+
+        setAngs(nextAngles);
+
+        testingJac+=1;
 
         rsLoop.realTimeDelay();
     }
@@ -129,7 +164,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 void HexapodLeg::doIKTest()
 {
     // Set Start Position
-    Eigen::Vector3d posik = {220, 0, -200};
+    Eigen::Vector3d posik = {220, 0, -170};
     moveToPos(posik);
 
     sleep_for(chrono::milliseconds(2000));
@@ -218,8 +253,8 @@ void HexapodLeg::setAngs(const Eigen::Vector3d& angs)
 // Send the angles of the servo motors to the arduino
 void HexapodLeg::sendAngs()
 {
-    cout << fmt::format("setAngs({}|{}/{})\n", currentAngles[0], currentAngles[1], currentAngles[2]);
-    arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", currentAngles[0], currentAngles[1], currentAngles[2]));
+    cout << fmt::format("setAngs({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
+    arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI));
 }
 
 // Move to Position Overload for 3 individual position input values

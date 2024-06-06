@@ -14,7 +14,7 @@ void parseCommand(string command);
 
 
 int main() {
-        string command;
+    string command;
     while (true) {
         cout << "Enter command: ";
         cin >> command;
@@ -41,5 +41,7 @@ void parseCommand(string command) {
         leg.moveToOff();
     } else if (command == "ikTest") {
         leg.doIKTest();
+    } else if (command == "jacTest") {
+        leg.doJacobianTest(1);
     }
 }
