@@ -6,6 +6,7 @@
 #include <math.h>
 #include <chrono>
 #include <thread>
+#include <cmath>
 
 using namespace std;
 using namespace this_thread;     // sleep_for, sleep_until
@@ -24,15 +25,17 @@ Eigen::MatrixXd HexapodLeg::getInverseJacobian()
 {
     Eigen::MatrixXd Jac(3,3);
 
-    Jac(0,0) = -sin(currentAngles[0])*(0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]) + 0.044925);
-    Jac(0,1) = -cos(currentAngles[0])*(0.221426*sin(currentAngles[1] + currentAngles[2]) + 0.1183145*sin(currentAngles[1]));
-    Jac(0,2) = -0.221426*sin(currentAngles[1] + currentAngles[2])*cos(currentAngles[0]);
-    Jac(1,0) = cos(currentAngles[0])*(0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]) + 0.044925);
-    Jac(1,1) = -sin(currentAngles[0])*(0.221426*sin(currentAngles[1] + currentAngles[2]) + 0.1183145*sin(currentAngles[1]));
-    Jac(1,2) = -0.221426*sin(currentAngles[1] + currentAngles[2])*sin(currentAngles[0]);
+    float tibia = -currentAngles[2]+2*M_PI;
+
+    Jac(0,0) = -sin(currentAngles[0])*(0.221426*cos(currentAngles[1] + tibia) + 0.1183145*cos(currentAngles[1]) + 0.044925);
+    Jac(0,1) = -cos(currentAngles[0])*(0.221426*sin(currentAngles[1] + tibia) + 0.1183145*sin(currentAngles[1]));
+    Jac(0,2) = -0.221426*sin(currentAngles[1] + tibia)*cos(currentAngles[0]);
+    Jac(1,0) = cos(currentAngles[0])*(0.221426*cos(currentAngles[1] + tibia) + 0.1183145*cos(currentAngles[1]) + 0.044925);
+    Jac(1,1) = -sin(currentAngles[0])*(0.221426*sin(currentAngles[1] + tibia) + 0.1183145*sin(currentAngles[1]));
+    Jac(1,2) = -0.221426*sin(currentAngles[1] + tibia)*sin(currentAngles[0]);
     Jac(2,0) = 0;
-    Jac(2,1) = 0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]);
-    Jac(2,2) = 0.221426*cos(currentAngles[1] + currentAngles[2]);
+    Jac(2,1) = 0.221426*cos(currentAngles[1] + tibia) + 0.1183145*cos(currentAngles[1]);
+    Jac(2,2) = 0.221426*cos(currentAngles[1] + tibia);
 
     // cout << "Jac" << endl << Jac << endl;
 
@@ -74,8 +77,8 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z)
 // Perform forward kinematics of the hexapod leg to get end affector position
 Eigen::Vector3d HexapodLeg::doFK(float coxa, float femur, float tibia)
 {
-    femur*=-1;
-    femur+=2*M_PI;
+    tibia*=-1;
+    tibia+=2*M_PI;
 
     Eigen::Vector3d pos(
         cos(coxa) * (0.221426 * cos(femur + tibia) + 0.1183145 * cos(femur) + 0.044925),
@@ -103,8 +106,8 @@ void HexapodLeg::moveToOff()
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
-    float radius = 0.05;  // meters
-    double angular_velocity = 1 * M_PI;   // HZ
+    float radius = 0.15;  // meters
+    double angular_velocity = 3 * M_PI;   // HZ
     float testingJac = 0;
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
@@ -118,23 +121,28 @@ void HexapodLeg::doJacobianTest(const int &style)
     // moveToPos(posik);
 
     setAngs(0, 134.072/2*M_PI/180, 143/2*M_PI/180);
+    cout<<doFK(currentAngles[0], currentAngles[1], currentAngles[2])<<endl;
 
     sleep_for(chrono::milliseconds(2000));
 
     rsLoop.updateTimeDelay();
 
     while (testingJac <= 10000) {
+
+        // cout<<chrono::high_resolution_clock::now().time_since_epoch().count()<<endl;
+
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
         
-        desiredSpatialVelocity << 0, 0, -0.05;
-            // -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
-            // radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
+        desiredSpatialVelocity << 0,
+            -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
+            -radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
         jacobianPseudoInverse = getInverseJacobian();
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
+        desiredAngularVelocities[2] = -desiredAngularVelocities[2];
         nextAngles = currentAngles + desiredAngularVelocities*0.001;
         auto nextPos = doFK(currentAngles[0], currentAngles[1], currentAngles[2]);
 
-        // cout << endl << testingJac << endl;
+        cout << endl << testingJac << endl;
         // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
         // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
         // cout << "Current Angles" << endl<< currentAngles <<endl;
@@ -287,4 +295,9 @@ float HexapodLeg::constrain(float val, float min, float max)
     } else {
         return val;
     }
+}
+
+float HexapodLeg::roundToDecimalPlaces(double value, int decimalPlaces) {
+    double scale = std::pow(10.0, decimalPlaces);
+    return std::round(value * scale) / scale;
 }

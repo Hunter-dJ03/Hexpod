@@ -41,7 +41,9 @@ private:
     void sendAngs();
     void sendPos(float x, float y, float z);
 
+    // Utility functions
     float constrain(float x, float a, float b);
+    float roundToDecimalPlaces(double value, int decimalPlaces);
 
     ArduinoController& arduino;
     RSTimedLoop& rsLoop;
