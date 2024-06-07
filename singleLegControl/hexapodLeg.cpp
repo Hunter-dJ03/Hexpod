@@ -11,11 +11,9 @@ using namespace std;
 using namespace this_thread;     // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int _id, ArduinoController &arduino, RSTimedLoop &rsLoop) : arduino(arduino), rsLoop(rsLoop)
+HexapodLeg::HexapodLeg(unsigned int id, ArduinoController &arduino, RSTimedLoop &rsLoop, bool simulationMode) : id(id), arduino(arduino), rsLoop(rsLoop), simulationMode(simulationMode)
 {
-    id = _id;
-
-    moveToZero();
+    // moveToZero();
 }
 
 HexapodLeg::~HexapodLeg()
@@ -123,6 +121,8 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     sleep_for(chrono::milliseconds(2000));
 
+    rsLoop.updateTimeDelay();
+
     while (testingJac <= 10000) {
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
         
@@ -158,6 +158,7 @@ void HexapodLeg::doIKTest()
     moveToPos(posik);
 
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Set interpolation scale
     int scale = 160;
@@ -167,63 +168,66 @@ void HexapodLeg::doIKTest()
     {
         posik[0] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Test Y movement
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Test Z Movement
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 }
 
 // Set Angles Overload for 3 individual angle input values
@@ -243,8 +247,11 @@ void HexapodLeg::setAngs(const Eigen::Vector3d& angs)
 // Send the angles of the servo motors to the arduino
 void HexapodLeg::sendAngs()
 {
-    cout << fmt::format("setAngs({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
-    arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI));
+    cout << fmt::format("({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
+    if (!simulationMode) {
+        arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[2]*180/M_PI, 2)));
+    }
+    
 }
 
 // Move to Position Overload for 3 individual position input values
