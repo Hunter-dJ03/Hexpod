@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    ArduinoController arduino("/dev/ttyACM0", 9600);
+    ArduinoController arduino("/dev/ttyACM0", 115200);
 
     // Read data from Arduino and print it
     while (true) {

@@ -257,7 +257,7 @@ void HexapodLeg::sendAngs()
 {
     cout << fmt::format("({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
     if (!simulationMode) {
-        arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[2]*180/M_PI, 2)));
+        arduino.sendCommand(fmt::format("({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[2]*180/M_PI, 2)));
     }
     
 }

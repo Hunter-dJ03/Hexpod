@@ -21,7 +21,7 @@ int main() {
     bool simulationMode;
 
     if (arduinoPort) {
-        arduino = new ArduinoController("/dev/ttyACM0", 9600);
+        arduino = new ArduinoController("/dev/ttyACM0", 115200);
         simulationMode = false;
         cout << "Arduino connected." << endl;
         
