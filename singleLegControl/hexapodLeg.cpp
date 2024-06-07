@@ -11,11 +11,9 @@ using namespace std;
 using namespace this_thread;     // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int _id, ArduinoController &arduino, RSTimedLoop &rsLoop) : arduino(arduino), rsLoop(rsLoop)
+HexapodLeg::HexapodLeg(unsigned int id, ArduinoController &arduino, RSTimedLoop &rsLoop, bool simulationMode) : id(id), arduino(arduino), rsLoop(rsLoop), simulationMode(simulationMode)
 {
-    id = _id;
-
-    moveToZero();
+    // moveToZero();
 }
 
 HexapodLeg::~HexapodLeg()
@@ -36,7 +34,7 @@ Eigen::MatrixXd HexapodLeg::getInverseJacobian()
     Jac(2,1) = 0.221426*cos(currentAngles[1] + currentAngles[2]) + 0.1183145*cos(currentAngles[1]);
     Jac(2,2) = 0.221426*cos(currentAngles[1] + currentAngles[2]);
 
-    cout << "Jac" << endl << Jac << endl;
+    // cout << "Jac" << endl << Jac << endl;
 
     return Jac.completeOrthogonalDecomposition().pseudoInverse();;
 }
@@ -123,34 +121,26 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     sleep_for(chrono::milliseconds(2000));
 
+    rsLoop.updateTimeDelay();
+
     while (testingJac <= 10000) {
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
-        cout<<endl<<testingJac;
+        
         desiredSpatialVelocity << 0, 0, -0.05;
             // -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
             // radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
-
-
-        cout <<endl<< "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
-
         jacobianPseudoInverse = getInverseJacobian();
-
-        cout <<endl<< "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
-
-
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
-
-        cout <<"Current Angles" << endl<< currentAngles <<endl;
-
-        cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-        
         nextAngles = currentAngles + desiredAngularVelocities*0.001;
-
-        cout << "Next Angles" << endl << nextAngles <<endl;
-
         auto nextPos = doFK(currentAngles[0], currentAngles[1], currentAngles[2]);
 
-        cout << "Next Pos" << endl << nextPos <<endl;
+        // cout << endl << testingJac << endl;
+        // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
+        // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+        // cout << "Current Angles" << endl<< currentAngles <<endl;
+        // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+        // cout << "Next Angles" << endl << nextAngles <<endl;
+        // cout << "Next Pos" << endl << nextPos <<endl;
 
         setAngs(nextAngles);
 
@@ -168,6 +158,7 @@ void HexapodLeg::doIKTest()
     moveToPos(posik);
 
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Set interpolation scale
     int scale = 160;
@@ -177,63 +168,66 @@ void HexapodLeg::doIKTest()
     {
         posik[0] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Test Y movement
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Test Z Movement
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
         moveToPos(posik);
-        sleep_for(chrono::milliseconds(1));
+        rsLoop.realTimeDelay();;
     }
     sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 }
 
 // Set Angles Overload for 3 individual angle input values
@@ -253,8 +247,11 @@ void HexapodLeg::setAngs(const Eigen::Vector3d& angs)
 // Send the angles of the servo motors to the arduino
 void HexapodLeg::sendAngs()
 {
-    cout << fmt::format("setAngs({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
-    arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI));
+    cout << fmt::format("({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
+    if (!simulationMode) {
+        arduino.sendCommand(fmt::format("setAngs({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[2]*180/M_PI, 2)));
+    }
+    
 }
 
 // Move to Position Overload for 3 individual position input values
