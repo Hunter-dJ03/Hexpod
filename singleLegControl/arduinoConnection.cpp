@@ -6,7 +6,9 @@
 
 using namespace std;
 
-RSTimedLoop rsLoop(1);
+float rsStep = 1; // Real Time Step (ms)
+
+RSTimedLoop rsLoop(rsStep);
 // ArduinoController arduino("/dev/ttyACM0", 115200);
 
 
@@ -31,7 +33,7 @@ int main() {
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     
-    HexapodLeg leg(1, *arduino, rsLoop, simulationMode);
+    HexapodLeg leg(1, *arduino, rsLoop, simulationMode, rsStep);
 
     string command;
     while (true) {

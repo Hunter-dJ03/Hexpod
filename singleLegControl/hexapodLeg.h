@@ -13,7 +13,7 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, ArduinoController& arduino, RSTimedLoop& rsLoop, bool simulationMode);
+    HexapodLeg(unsigned int id, ArduinoController& arduino, RSTimedLoop& rsLoop, bool simulationMode, float rsStep);
     ~HexapodLeg();
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);
@@ -38,6 +38,7 @@ public:
     Eigen::Vector3d currentAngles;
 
 private:
+    float rsStep;
     void sendAngs();
     void sendPos(float x, float y, float z);
 

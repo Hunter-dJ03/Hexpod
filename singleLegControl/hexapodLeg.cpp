@@ -12,7 +12,7 @@ using namespace std;
 using namespace this_thread;     // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, ArduinoController &arduino, RSTimedLoop &rsLoop, bool simulationMode) : id(id), arduino(arduino), rsLoop(rsLoop), simulationMode(simulationMode)
+HexapodLeg::HexapodLeg(unsigned int id, ArduinoController &arduino, RSTimedLoop &rsLoop, bool simulationMode, float rsStep) : id(id), arduino(arduino), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
 {
     // moveToZero();
 }
@@ -106,8 +106,8 @@ void HexapodLeg::moveToOff()
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
-    float radius = 0.15;  // meters
-    double angular_velocity = 3 * M_PI;   // HZ
+    float radius = 0.3;  // meters
+    double angular_velocity = 0.5 * M_PI;   // HZ
     float testingJac = 0;
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
@@ -134,25 +134,26 @@ void HexapodLeg::doJacobianTest(const int &style)
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
         
         desiredSpatialVelocity << 0,
-            -radius * angular_velocity * cos(angular_velocity * (testingJac)*0.001),
-            -radius * angular_velocity * sin(angular_velocity * (testingJac)*0.001);
+            -radius * angular_velocity * cos(angular_velocity * (testingJac)*(rsStep/1000)),
+            -radius * angular_velocity * sin(angular_velocity * (testingJac)*(rsStep/1000));
         jacobianPseudoInverse = getInverseJacobian();
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
         desiredAngularVelocities[2] = -desiredAngularVelocities[2];
-        nextAngles = currentAngles + desiredAngularVelocities*0.001;
+        nextAngles = currentAngles + desiredAngularVelocities*(rsStep/1000);
         auto nextPos = doFK(currentAngles[0], currentAngles[1], currentAngles[2]);
 
+        cout <<rsStep<<endl;
         cout << endl << testingJac << endl;
-        // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
-        // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
-        // cout << "Current Angles" << endl<< currentAngles <<endl;
-        // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-        // cout << "Next Angles" << endl << nextAngles <<endl;
-        // cout << "Next Pos" << endl << nextPos <<endl;
+        cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
+        cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+        cout << "Current Angles" << endl<< currentAngles <<endl;
+        cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+        cout << "Next Angles" << endl << nextAngles <<endl;
+        cout << "Next Pos" << endl << nextPos <<endl;
 
         setAngs(nextAngles);
 
-        testingJac+=1;
+        testingJac+=rsStep;
 
         rsLoop.realTimeDelay();
     }
