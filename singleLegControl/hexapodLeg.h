@@ -19,10 +19,10 @@ public:
     void setAngs(const Eigen::Vector3d& angs);
 
 
-    Eigen::MatrixXd getInverseJacobian();
+    Eigen::MatrixXd getJacobian();
 
     Eigen::Vector3d doIK(float x, float y, float z);
-    Eigen::Vector3d doFK(float coxa, float femur, float tibia);
+    Eigen::Vector3d doFK();
 
     void moveToPos(float x, float y, float z);
     void moveToPos(const Eigen::Vector3d& pos);
