@@ -118,16 +118,15 @@ void HexapodLeg::moveToOff()
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
-    int dur = 100000;
-    vector<double> t(dur);
-    vector<vector<double>> jointVelocity(3, vector<double>(dur));
-    vector<vector<double>> jointPosition(3, vector<double>(dur));
-    vector<vector<double>> spatialVelocity(3, vector<double>(dur));
-    vector<vector<double>> spatialPosition(3, vector<double>(dur));
+    int dur = 10000; //ms
+    vector<double> t(dur/rsStep);
+    vector<vector<double>> jointVelocity(3, vector<double>(dur/rsStep));
+    vector<vector<double>> jointPosition(3, vector<double>(dur/rsStep));
+    vector<vector<double>> spatialVelocity(3, vector<double>(dur/rsStep));
+    vector<vector<double>> spatialPosition(3, vector<double>(dur/rsStep));
 
     float radius = 0.05;  // meters
     double angular_velocity = 0.5 * M_PI;   // HZ
-    float testingJac = 0;
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
     Eigen::Vector3d nextAngles;
@@ -149,15 +148,14 @@ void HexapodLeg::doJacobianTest(const int &style)
     rsLoop.updateTimeDelay();
 
     // Simulation Cycle
-    for (int i = 0; i < dur; i++) {
-        t[i] = i;
+    for (int i = 0; i < dur/rsStep; i++) {
         // cout<<chrono::high_resolution_clock::now().time_since_epoch().count()<<endl;
 
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
         
         desiredSpatialVelocity << 
-            radius * angular_velocity * sin(angular_velocity * (testingJac)*(rsStep/1000)),0,
-            radius * angular_velocity * cos(angular_velocity * (testingJac)*(rsStep/1000));
+            radius * angular_velocity * sin(angular_velocity * (i)*(rsStep/1000)),0,
+            radius * angular_velocity * cos(angular_velocity * (i)*(rsStep/1000));
 
         // desiredSpatialVelocity << 0,0,0;
 
@@ -169,6 +167,8 @@ void HexapodLeg::doJacobianTest(const int &style)
         nextAngles = currentAngles + desiredAngularVelocities*(rsStep/1000);
         nextPos = doFK();
 
+
+        t[i] = i*rsStep;        
         for (int j = 0; j <=2;j++) {
             // pos
             jointVelocity[j][i] = desiredAngularVelocities[j];
@@ -177,24 +177,24 @@ void HexapodLeg::doJacobianTest(const int &style)
             spatialPosition[j][i] = nextPos[j];
         }
 
-        // if (testingJac > 37400 && testingJac < 37420) {
-        if (abs(desiredAngularVelocities[0]) > 10 || abs(desiredAngularVelocities[1]) > 10 || abs(desiredAngularVelocities[2]) > 10) {
-            cout <<rsStep<<endl;
-            cout << endl << testingJac << endl;
-            cout << "Current Angles" << endl<< currentAngles <<endl;
-            cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
-            cout << "Jacobian" << endl<<jacobian<<endl;
-            cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
-            cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-            cout << "Next Angles" << endl << nextAngles <<endl;
-            cout << "Next Pos" << endl << nextPos <<endl;
+        if (true) {
+        // if (i > 37400 && i < 37420) {
+        // if (abs(desiredAngularVelocities[0]) > 10 || abs(desiredAngularVelocities[1]) > 10 || abs(desiredAngularVelocities[2]) > 10) {
+            // cout <<rsStep<<endl;
+            cout << endl << i*rsStep << endl;
+            // cout << endl << i << endl;
+            // cout << "Current Angles" << endl<< currentAngles <<endl;
+            // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
+            // cout << "Jacobian" << endl<<jacobian<<endl;
+            // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+            // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+            // cout << "Next Angles" << endl << nextAngles <<endl;
+            // cout << "Next Pos" << endl << nextPos <<endl;
         }
         
         setAngs(nextAngles);
 
-        testingJac+=rsStep;
-
-        // rsLoop.realTimeDelay();
+        rsLoop.realTimeDelay();
     }
 
     // plot
@@ -278,6 +278,8 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         plt::show();
     }
+
+    return;
 }
 
 // Test the IK position control in X Y Z axis individually
