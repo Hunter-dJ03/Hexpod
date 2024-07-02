@@ -103,30 +103,33 @@ Eigen::Vector3d HexapodLeg::doFK() {
 // Move to straight leg position
 void HexapodLeg::moveToZero()
 {
-    setAngs(0, 0, 0);
+    setAngs(0, 0, 360*M_PI/180);
 }
 // Move to basic standing position
 void HexapodLeg::moveToBasic()
 {
-    setAngs(0*M_PI/180, 40*M_PI/180, 102*M_PI/180);
+    setAngs(0*M_PI/180, 40*M_PI/180, (360-102)*M_PI/180);
 }
 // Move to position that should fold back past limit when power disabled
 void HexapodLeg::moveToOff()
 {
-    setAngs(0*M_PI/180, 90*M_PI/180, 163*M_PI/180);
+    setAngs(0*M_PI/180, 90*M_PI/180, (360-163)*M_PI/180);
 }
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
-    int dur = 10000; //ms
+
+    float radius = 0.15;  // meters
+    double period = 10;   // HZ
+    double cycles = 1;
+
+    int dur = period*cycles*1000; //ms
     vector<double> t(dur/rsStep);
     vector<vector<double>> jointVelocity(3, vector<double>(dur/rsStep));
     vector<vector<double>> jointPosition(3, vector<double>(dur/rsStep));
     vector<vector<double>> spatialVelocity(3, vector<double>(dur/rsStep));
     vector<vector<double>> spatialPosition(3, vector<double>(dur/rsStep));
 
-    float radius = 0.05;  // meters
-    double angular_velocity = 0.5 * M_PI;   // HZ
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
     Eigen::Vector3d nextAngles;
@@ -136,10 +139,7 @@ void HexapodLeg::doJacobianTest(const int &style)
     // long currentTime;
 
     // Set Start Position
-    // Eigen::Vector3d posik(220, 0, -170);
-    // moveToPos(posik);
-
-    setAngs(0, 134.072/2*M_PI/180, 143/2*M_PI/180);
+    setAngs(0, 134.072/2*M_PI/180, (360-143/2)*M_PI/180);
     cout<<doFK()<<endl;
 
     if (!simulationMode) {
@@ -153,9 +153,9 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         // currentTime = chrono::high_resolution_clock::now().time_since_epoch().count();
         
-        desiredSpatialVelocity << 
-            radius * angular_velocity * sin(angular_velocity * (i)*(rsStep/1000)),0,
-            radius * angular_velocity * cos(angular_velocity * (i)*(rsStep/1000));
+        desiredSpatialVelocity << 0,
+            radius * 2/period*M_PI * cos(2/period*M_PI * (i)*(rsStep/1000)),
+            -radius * 2/period*M_PI * sin(2/period*M_PI * (i)*(rsStep/1000));
 
         // desiredSpatialVelocity << 0,0,0;
 
@@ -198,7 +198,7 @@ void HexapodLeg::doJacobianTest(const int &style)
     }
 
     // plot
-    if (true) {
+    if (false) {
 
         /****** Spacial Position*/
         plt::figure_size(1200, 380*1.5);
@@ -289,11 +289,11 @@ void HexapodLeg::doIKTest()
     Eigen::Vector3d posik = {220, 0, -170};
     moveToPos(posik);
 
-    sleep_for(chrono::milliseconds(2000));
-    rsLoop.updateTimeDelay();
-
     // Set interpolation scale
     int scale = 160;
+
+    sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
 
     // Test X movement
     for (int i = 1; i <= scale; i++)
@@ -379,9 +379,9 @@ void HexapodLeg::setAngs(const Eigen::Vector3d& angs)
 // Send the angles of the servo motors to the arduino
 void HexapodLeg::sendAngs()
 {
-    // cout << fmt::format("({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, currentAngles[2]*180/M_PI);
+    cout << fmt::format("({}|{}/{})\n", currentAngles[0]*180/M_PI, currentAngles[1]*180/M_PI, -currentAngles[2]*180/M_PI + 360);
     if (!simulationMode) {
-        arduino.sendCommand(fmt::format("({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[2]*180/M_PI, 2)));
+        arduino.sendCommand(fmt::format("({}|{}/{})\r", roundToDecimalPlaces(currentAngles[0]*180/M_PI, 2), roundToDecimalPlaces(currentAngles[1]*180/M_PI, 2), roundToDecimalPlaces(-currentAngles[2]*180/M_PI + 360, 2)));
     }
     
 }
@@ -403,7 +403,7 @@ void HexapodLeg::sendPos(float x, float y, float z)
     // Get Angles for set position
     Eigen::Vector3d angs = doIK(x, y, z);
 
-    // cout <<endl << angs <<endl;
+    cout <<endl << angs <<endl;
 
     // Move to angles
     setAngs(angs);

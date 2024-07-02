@@ -6,7 +6,7 @@
 
 using namespace std;
 
-float rsStep = 200; // Real Time Step (ms)
+float rsStep = 5; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 // ArduinoController arduino("/dev/ttyACM0", 115200);
