@@ -1,5 +1,5 @@
 #include "hexapodLeg.h"
-#include "rs_timed_loop.h"
+#include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 
 #include "matplotlibcpp.h"
 

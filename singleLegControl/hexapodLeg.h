@@ -1,8 +1,8 @@
 #ifndef HEXAPODLEG_H
 #define HEXAPODLEG_H
 
-#include "arduinoController.h"
-#include "rs_timed_loop.h"
+#include "../modules/custom/arduinoConnection/arduinoController.h"
+#include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>

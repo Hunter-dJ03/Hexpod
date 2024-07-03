@@ -1,5 +1,5 @@
-#include "arduinoController.h"
-#include "rs_timed_loop.h"
+#include "../modules/custom/arduinoConnection/arduinoController.h"
+#include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "hexapodLeg.h"
 #include <iostream>
 #include <fstream>
@@ -10,8 +10,6 @@ float rsStep = 5; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 // ArduinoController arduino("/dev/ttyACM0", 115200);
-
-
 
 void parseCommand(string command, HexapodLeg &leg);
 

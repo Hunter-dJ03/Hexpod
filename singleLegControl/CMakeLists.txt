@@ -17,9 +17,9 @@ include_directories("/home/hunter/raisim_ws/repos/matplotlib-cpp")
 
 
 # Add executables
-add_executable(arduinoConnection arduinoConnection.cpp arduinoController.cpp hexapodLeg.cpp rs_timed_loop.cpp)
-add_executable(readArduino readArduino.cpp arduinoController.cpp)
+add_executable(singleLegControl singleLegControl.cpp ../modules/custom/arduinoConnection/arduinoController.cpp hexapodLeg.cpp ../modules/custom/rsTimedLoop/rsTimedLoop.cpp)
+# add_executable(readArduino readArduino.cpp ../modules/custom/arduinoConnection/arduinoController.cpp)
 
 # Link libraries to executables
-target_link_libraries(arduinoConnection fmt::fmt ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
-target_link_libraries(readArduino ${Boost_LIBRARIES})
+target_link_libraries(singleLegControl fmt::fmt ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+# target_link_libraries(readArduino ${Boost_LIBRARIES})
