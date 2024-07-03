@@ -4,13 +4,21 @@
 
 using namespace std;
 
-int main() {
-    ArduinoController arduino("/dev/ttyACM0", 115200);
-
-    // Read data from Arduino and print it
+// Function to read data from Arduino and print it
+void readAndPrintData(ArduinoController& arduino) {
     while (true) {
         string data = arduino.readData();
         cout << "Arduino: " << data << endl;
+    }
+}
+
+int main() {
+    try {
+        ArduinoController arduino("/dev/ttyACM0", 115200);
+        readAndPrintData(arduino);
+    } catch (const std::exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        return EXIT_FAILURE;
     }
 
     return 0;
