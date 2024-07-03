@@ -11,6 +11,7 @@ using namespace std;
 class ArduinoController {
 public:
     ArduinoController(const string& port, unsigned int baud_rate);
+    ArduinoController();
     ~ArduinoController();
 
     void sendCommand(const string& command);

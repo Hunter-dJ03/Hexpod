@@ -3,6 +3,8 @@
 #include <boost/asio.hpp>
 #include <thread>
 
+ArduinoController::ArduinoController() : serial(io) {};
+
 ArduinoController::ArduinoController(const std::string& port, unsigned int baud_rate)
     : serial(io, port), running(true) {
     serial.set_option(boost::asio::serial_port_base::baud_rate(baud_rate));

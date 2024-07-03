@@ -2,6 +2,7 @@
 #define HEXAPODLEG_H
 
 #include "arduinoController.h"
+#include "rs_timed_loop.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -12,16 +13,16 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, ArduinoController& arduino);
+    HexapodLeg(unsigned int id, ArduinoController& arduino, RSTimedLoop& rsLoop, bool simulationMode, float rsStep);
     ~HexapodLeg();
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);
 
 
-    Eigen::MatrixXd getInverseJacobian(float coxa, float femur, float tibiaz);
+    Eigen::MatrixXd getJacobian();
 
     Eigen::Vector3d doIK(float x, float y, float z);
-    Eigen::Vector3d doFK(float coxa, float femur, float tibia);
+    Eigen::Vector3d doFK();
 
     void moveToPos(float x, float y, float z);
     void moveToPos(const Eigen::Vector3d& pos);
@@ -34,15 +35,21 @@ public:
 
     int id;
     Eigen::Vector3d pos;
-    Eigen::Vector3d angs;
+    Eigen::Vector3d currentAngles;
 
 private:
-    void setAngsOverload(float coxa, float femur, float tibia);
-    void moveToPosOverload(float x, float y, float z);
+    float rsStep;
+    void sendAngs();
+    void sendPos(float x, float y, float z);
 
+    // Utility functions
     float constrain(float x, float a, float b);
+    float roundToDecimalPlaces(double value, int decimalPlaces);
 
     ArduinoController& arduino;
+    RSTimedLoop& rsLoop;
+
+    bool simulationMode;
 
     float coxaX = 44.925;
     float coxaZ = 10.650;

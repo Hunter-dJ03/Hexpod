@@ -1,27 +1,51 @@
 #include "arduinoController.h"
+#include "rs_timed_loop.h"
 #include "hexapodLeg.h"
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
-ArduinoController arduino("/dev/ttyACM0", 115200);
-HexapodLeg leg(1, arduino);
+float rsStep = 5; // Real Time Step (ms)
 
-void parseCommand(string command);
+RSTimedLoop rsLoop(rsStep);
+// ArduinoController arduino("/dev/ttyACM0", 115200);
+
+
+
+void parseCommand(string command, HexapodLeg &leg);
 
 
 int main() {
-        string command;
+    fstream arduinoPort("/dev/ttyACM0");
+
+    ArduinoController* arduino; // Declare the variable
+    bool simulationMode;
+
+    if (arduinoPort) {
+        arduino = new ArduinoController("/dev/ttyACM0", 115200);
+        simulationMode = false;
+        cout << "Arduino connected." << endl;
+        
+    } else {
+        arduino = new ArduinoController();
+        simulationMode = true;
+        cout << "Arduino not connected. Running in simulation mode." << endl;
+    }
+    
+    HexapodLeg leg(1, *arduino, rsLoop, simulationMode, rsStep);
+
+    string command;
     while (true) {
         cout << "Enter command: ";
         cin >> command;
 
         if (command == "exit") {
-            arduino.~ArduinoController();
+            arduino->~ArduinoController();
             break;
         };
 
-        parseCommand(command);
+        parseCommand(command, leg);
 
         // arduino.sendCommand(command);
     }
@@ -29,7 +53,7 @@ int main() {
     return 0;
 }
 
-void parseCommand(string command) {
+void parseCommand(string command, HexapodLeg &leg) {
     if (command == "zero") {
         leg.moveToZero();
     } else if (command == "basic") {
@@ -38,5 +62,7 @@ void parseCommand(string command) {
         leg.moveToOff();
     } else if (command == "ikTest") {
         leg.doIKTest();
+    } else if (command == "jacTest") {
+        leg.doJacobianTest(1);
     }
 }
