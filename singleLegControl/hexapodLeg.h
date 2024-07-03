@@ -40,11 +40,7 @@ private:
     float rsStep;
     void sendAngs();
     void sendPos(float x, float y, float z);
-
-    // Utility functions
-    // float constrain(float x, float a, float b) const;
-    // float roundToDecimalPlaces(double value, int decimalPlaces) const;
-
+    
     unique_ptr<ArduinoController> arduino;
     RSTimedLoop& rsLoop;
 

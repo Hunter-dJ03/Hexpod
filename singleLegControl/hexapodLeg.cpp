@@ -402,26 +402,3 @@ void HexapodLeg::sendPos(float x, float y, float z)
     // Move to angles
     setAngs(angs);
 }
-
-// // Utility function to Utils::constrain a value to a range with set max and min
-// float HexapodLeg::Utils::constrain(float val, float min, float max) const
-// {
-//     if (val < min)
-//     {
-//         return min;
-//     }
-//     else if (val > max)
-//     {
-//         return max;
-//     }
-//     else
-//     {
-//         return val;
-//     }
-// }
-
-// float HexapodLeg::Utils::roundToDecimalPlaces(double value, int decimalPlaces) const
-// {
-//     double scale = std::pow(10.0, decimalPlaces);
-//     return std::round(value * scale) / scale;
-// }
