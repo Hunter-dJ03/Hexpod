@@ -120,8 +120,8 @@ void HexapodLeg::doJacobianTest(const int &style)
 {
 
     float radius = 0.15;  // meters
-    double period = 10;   // HZ
-    double cycles = 1;
+    double period = 2;   // HZ
+    double cycles = 5;
 
     int dur = period*cycles*1000; //ms
     vector<double> t(dur/rsStep);
