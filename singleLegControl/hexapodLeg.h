@@ -13,7 +13,7 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, ArduinoController& arduino, RSTimedLoop& rsLoop, bool simulationMode, float rsStep);
+    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool simulationMode, float rsStep);
     ~HexapodLeg();
 
     Eigen::MatrixXd getJacobian() const;
@@ -45,7 +45,7 @@ private:
     // float constrain(float x, float a, float b) const;
     // float roundToDecimalPlaces(double value, int decimalPlaces) const;
 
-    ArduinoController& arduino;
+    unique_ptr<ArduinoController> arduino;
     RSTimedLoop& rsLoop;
 
     bool simulationMode;

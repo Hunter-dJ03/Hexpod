@@ -16,8 +16,8 @@ namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, ArduinoController &arduino, RSTimedLoop &rsLoop, bool simulationMode, float rsStep)
-    : id(id), arduino(arduino), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
+HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, float rsStep)
+    : id(id), arduino(move(arduino)), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
 {
 }
 
@@ -108,7 +108,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     float radius = 0.15; // meters
     double period = 2;   // HZ
-    double cycles = 5;
+    double cycles = 2;
 
     int dur = period * cycles * 1000; // ms
     vector<double> t(dur / rsStep);
@@ -373,7 +373,7 @@ void HexapodLeg::sendAngs()
     // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (!simulationMode)
     {
-        arduino.sendCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360, 2)));
+        arduino->sendCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360, 2)));
     }
 }
 

@@ -3,6 +3,7 @@
 #include "hexapodLeg.h"
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 using namespace std;
 
@@ -16,21 +17,21 @@ void parseCommand(const string& command, HexapodLeg &leg);
 int main() {
     fstream arduinoPort("/dev/ttyACM0");
 
-    ArduinoController* arduino;  // Declare the variable
+    unique_ptr<ArduinoController> arduino;
     bool simulationMode;
 
     if (arduinoPort) {
-        arduino = new ArduinoController("/dev/ttyACM0", 115200);
+        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 115200);
         simulationMode = false;
         cout << "Arduino connected." << endl;
         
     } else {
-        arduino = new ArduinoController();
+        arduino = make_unique<ArduinoController>();
         simulationMode = true;
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     
-    HexapodLeg leg(1, *arduino, rsLoop, simulationMode, rsStep);
+    HexapodLeg leg(1, move(arduino), rsLoop, simulationMode, rsStep);
 
     string command;
     while (true) {
@@ -38,13 +39,10 @@ int main() {
         cin >> command;
 
         if (command == "exit") {
-            arduino->~ArduinoController();
             break;
         };
 
         parseCommand(command, leg);
-
-        // arduino.sendCommand(command);
     }
     
     return 0;
