@@ -1,4 +1,4 @@
-#include "arduinoController.h"
+#include "../modules/custom/arduinoConnection/arduinoController.h"
 #include <iostream>
 #include <cstdlib>
 

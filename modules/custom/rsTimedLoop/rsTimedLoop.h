@@ -1,5 +1,5 @@
-#ifndef RS_TIMED_LOOP_H
-#define RS_TIMED_LOOP_H
+#ifndef RSTIMEDLOOP_H
+#define RSTIMEDLOOP_H
 
 #include <chrono>
 #include <thread>
@@ -19,4 +19,4 @@ private:
 
 };
 
-#endif // RS_TIMED_LOOP_H
+#endif // RSTIMEDLOOP_H
