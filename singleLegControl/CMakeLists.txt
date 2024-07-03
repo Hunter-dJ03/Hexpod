@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(ArduinoSerialConnection)
+project(HexapodControl)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -10,16 +10,28 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(PythonLibs 3.10 REQUIRED)  # Change Python version as needed
 
 # Include directories
-include_directories(${EIGEN3_INCLUDE_DIRS})
-include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${PYTHON_INCLUDE_DIRS})
-include_directories("/home/hunter/raisim_ws/repos/matplotlib-cpp")
-
+include_directories(
+    ${EIGEN3_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
+    ${PYTHON_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/modules/custom/arduinoConnection
+    ${CMAKE_SOURCE_DIR}/modules/custom/rsTimedLoop
+    ${CMAKE_SOURCE_DIR}/modules/custom/utilities
+    "/home/hunter/raisim_ws/repos/matplotlib-cpp"
+)
 
 # Add executables
-add_executable(singleLegControl singleLegControl.cpp ../modules/custom/arduinoConnection/arduinoController.cpp hexapodLeg.cpp ../modules/custom/rsTimedLoop/rsTimedLoop.cpp)
-# add_executable(readArduino readArduino.cpp ../modules/custom/arduinoConnection/arduinoController.cpp)
+add_executable(singleLegControl
+    singleLegControl.cpp
+    ../modules/custom/arduinoConnection/arduinoController.cpp
+    hexapodLeg.cpp
+    ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
+    ../modules/custom/utilities/utils.cpp
+)
 
 # Link libraries to executables
-target_link_libraries(singleLegControl fmt::fmt ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
-# target_link_libraries(readArduino ${Boost_LIBRARIES})
+target_link_libraries(singleLegControl
+    fmt::fmt
+    ${Boost_LIBRARIES}
+    ${PYTHON_LIBRARIES}
+)

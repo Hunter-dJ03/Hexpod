@@ -6,18 +6,17 @@
 
 using namespace std;
 
-float rsStep = 5; // Real Time Step (ms)
+const float rsStep = 20; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 // ArduinoController arduino("/dev/ttyACM0", 115200);
 
-void parseCommand(string command, HexapodLeg &leg);
-
+void parseCommand(const string& command, HexapodLeg &leg);
 
 int main() {
     fstream arduinoPort("/dev/ttyACM0");
 
-    ArduinoController* arduino; // Declare the variable
+    ArduinoController* arduino;  // Declare the variable
     bool simulationMode;
 
     if (arduinoPort) {
@@ -51,7 +50,7 @@ int main() {
     return 0;
 }
 
-void parseCommand(string command, HexapodLeg &leg) {
+void parseCommand(const string& command, HexapodLeg &leg) {
     if (command == "zero") {
         leg.moveToZero();
     } else if (command == "basic") {
@@ -62,5 +61,7 @@ void parseCommand(string command, HexapodLeg &leg) {
         leg.doIKTest();
     } else if (command == "jacTest") {
         leg.doJacobianTest(1);
+    } else {
+        cout << "Unknown command: " << command << endl;
     }
 }
