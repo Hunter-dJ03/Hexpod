@@ -8,7 +8,7 @@
 
 using namespace std;
 
-
+const bool raisimSimulator = true;
 const float rsStep = 20; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     
-    HexapodLeg leg(1, move(arduino), rsLoop, simulationMode, rsStep);
+    HexapodLeg leg(1, move(arduino), rsLoop, simulationMode, raisimSimulator, rsStep);
 
     string command;
     while (true) {

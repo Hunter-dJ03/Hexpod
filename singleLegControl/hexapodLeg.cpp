@@ -1,6 +1,7 @@
 #include "hexapodLeg.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "../modules/custom/utilities/utils.h"
+#include "../modules/custom/raisimSimulator/raisimSimulator.h"
 
 #include "matplotlibcpp.h"
 
@@ -16,9 +17,12 @@ namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, float rsStep)
+HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, bool raisimSimulator, float rsStep)
     : id(id), arduino(move(arduino)), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
 {
+    if (raisimSimulator) {
+        simulator = make_unique<RaisimSimulator>(rsStep);
+    }
 }
 
 HexapodLeg::~HexapodLeg()

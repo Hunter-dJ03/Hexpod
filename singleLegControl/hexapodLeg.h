@@ -3,6 +3,7 @@
 
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
+#include "../modules/custom/raisimSimulator/raisimSimulator.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -13,7 +14,7 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool simulationMode, float rsStep);
+    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool simulationMode, bool raisimSimulator, float rsStep);
     ~HexapodLeg();
 
     Eigen::MatrixXd getJacobian() const;
@@ -45,6 +46,8 @@ private:
     RSTimedLoop& rsLoop;
 
     bool simulationMode;
+
+    unique_ptr<RaisimSimulator> simulator;
 
     constexpr static float coxaX = 44.925;
     constexpr static float coxaZ = 10.650;

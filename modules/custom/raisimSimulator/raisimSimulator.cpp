@@ -9,19 +9,27 @@
 #include <math.h>
 #include <chrono>
 
+using namespace std;
+using namespace raisim;
+
 RaisimSimulator::RaisimSimulator(const float rsStep) {
     initialize(rsStep);
 }
 
 RaisimSimulator::~RaisimSimulator() {
-    // Cleanup Raisim resources
+    
 }
 
 void RaisimSimulator::initialize(const float rsStep) {
     world.setTimeStep(rsStep/1000);
     auto ground = world.addGround(-2);
+
+    // Build Server
+    RaisimServer server(&world);
+    server.launchServer(8080);
+
+    cout<<"Awaiting Connection to raisim server"<<endl;
+    while (!server.isConnected());
+    cout<<"Server Connected"<<endl;
 }
-
-
-// Other methods...
 
