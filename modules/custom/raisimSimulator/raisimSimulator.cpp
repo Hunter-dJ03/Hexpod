@@ -8,16 +8,18 @@
 #include <eigen3/Eigen/Dense>
 #include <math.h>
 #include <chrono>
+#include <memory> 
 
 using namespace std;
 using namespace raisim;
 
-RaisimSimulator::RaisimSimulator(const float rsStep) {
+RaisimSimulator::RaisimSimulator(const float rsStep) : rsStep(rsStep) 
+{
     initialize(rsStep);
 }
 
 RaisimSimulator::~RaisimSimulator() {
-    
+    server->killServer();
 }
 
 void RaisimSimulator::initialize(const float rsStep) {
@@ -25,11 +27,12 @@ void RaisimSimulator::initialize(const float rsStep) {
     auto ground = world.addGround(-2);
 
     // Build Server
-    RaisimServer server(&world);
-    server.launchServer(8080);
+    // server.world_
+    server = make_unique<raisim::RaisimServer>(&world);
+    server->launchServer(8080);
 
     cout<<"Awaiting Connection to raisim server"<<endl;
-    while (!server.isConnected());
+    while (!server->isConnected());
     cout<<"Server Connected"<<endl;
 }
 

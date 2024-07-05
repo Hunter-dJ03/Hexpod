@@ -25,6 +25,7 @@ add_executable(singleLegControl
     hexapodLeg.cpp
     ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
     ../modules/custom/utilities/utils.cpp
+    ../modules/custom/raisimSimulator/raisimSimulator.cpp
 )
 
 # Link libraries to executables

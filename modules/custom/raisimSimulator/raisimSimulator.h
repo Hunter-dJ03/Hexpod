@@ -3,8 +3,11 @@
 
 #include <eigen3/Eigen/Core>
 #include <raisim/World.hpp>
+#include "raisim/RaisimServer.hpp"
+#include <memory> 
 
 using namespace raisim;
+using namespace std;
 
 class RaisimSimulator
 {
@@ -16,8 +19,9 @@ public:
     // Other simulation-related methods...
 
 private:
+    const float rsStep;
     World world;
-    // Raisim specific members and methods...
+    unique_ptr<raisim::RaisimServer> server;
 };
 
 #endif

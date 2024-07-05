@@ -27,6 +27,8 @@ HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> ardui
 
 HexapodLeg::~HexapodLeg()
 {
+    if (arduino) arduino.reset();
+    if (simulator) simulator.reset();
 }
 
 Eigen::MatrixXd HexapodLeg::getJacobian() const
