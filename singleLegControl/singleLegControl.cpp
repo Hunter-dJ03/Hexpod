@@ -4,8 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "raisim/RaisimServer.hpp"
 
 using namespace std;
+
 
 const float rsStep = 20; // Real Time Step (ms)
 
@@ -14,7 +16,9 @@ RSTimedLoop rsLoop(rsStep);
 
 void parseCommand(const string& command, HexapodLeg &leg);
 
-int main() {
+int main(int argc, char* argv[]) {
+    auto binaryPath = raisim::Path::setFromArgv(argv[0]);
+
     fstream arduinoPort("/dev/ttyACM0");
 
     unique_ptr<ArduinoController> arduino;

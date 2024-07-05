@@ -1,0 +1,128 @@
+<robot name="onshape">
+
+    <link name="world"/>
+
+    <joint name="fixed" type="fixed">
+        <parent link="world"/>
+        <child link="body2"/>
+      </joint>
+
+    <link name="body2">
+        <visual>
+            <origin xyz="-2.0251919607972013182e-07 -9.3350295549132766837e-09 0" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="../meshes/body2.obj"/>
+            </geometry>
+            <material name="body2_material">
+                <color rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="-2.0251919607972013182e-07 -9.3350295549132766837e-09 0" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="../meshes/body2.obj"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="4.8159086971463767161e-05 -0.0014156634461524764557 0.024780876379141083404" rpy="0 0 0"/>
+            <mass value="1.3612542756189531801" />
+            <inertia ixx="0.0077625706777320205645" ixy="2.5091052185424148231e-06" ixz="-5.8608327827102587042e-07" iyy="0.0063611320539585245251" iyz="-1.7398036421375984368e-05" izz="0.013115144217312024733" />
+        </inertial>
+    </link>
+
+    <link name="coxa">
+        <visual>
+            <origin xyz="0.044924999999999687406 3.145194269415195476e-16 0.024449999999999996042" rpy="1.570796326794896336 4.1572969705147401066e-27 5.0966470094959365604e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxa.obj"/>
+            </geometry>
+            <material name="coxa_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999687406 3.145194269415195476e-16 0.024449999999999996042" rpy="1.570796326794896336 4.1572969705147401066e-27 5.0966470094959365604e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxa.obj"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.032100077240121767386 0.0015740371043174768845 0.033819596679097931047" rpy="0 0 0"/>
+            <mass value="0.13178847096179543974" />
+            <inertia ixx="0.0001120637319682607708" ixy="-2.7238887323284794569e-06" ixz="4.541961101453425331e-06" iyy="0.00015582474539323185633" iyz="1.6739702901874812073e-06" izz="8.7721551578304402452e-05" />
+        </inertial>
+    </link>
+
+    <link name="femur">
+        <visual>
+            <origin xyz="0.11831370849898506514 -6.9388939039072283776e-18 0.034149999999999978983" rpy="2.5412593609926795065e-16 2.6169860213127295066e-16 -2.4651903288156618919e-32" />
+            <geometry>
+                <mesh filename="../meshes/femur.obj"/>
+            </geometry>
+            <material name="femur_material">
+                <color rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898506514 -6.9388939039072283776e-18 0.034149999999999978983" rpy="2.5412593609926795065e-16 2.6169860213127295066e-16 -2.4651903288156618919e-32" />
+            <geometry>
+                <mesh filename="../meshes/femur.obj"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060855439588990208055 -1.5373120823894589545e-09 0.035514840700278348107" rpy="0 0 0"/>
+            <mass value="0.12356537633038003343" />
+            <inertia ixx="0.00012639156802844351245" ixy="-3.3471051787725796419e-06" ixz="4.1877477426021486444e-07" iyy="0.00033659596516426965821" iyz="-1.0699466498548058562e-13" izz="0.0002464025580922648965" />
+        </inertial>
+    </link>
+
+    <link name="tibia">
+        <visual>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.034350000000001157385" rpy="4.3217611766192801141e-16 2.1006481850655434526e-16 -1.0400957034813095433e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibia.obj"/>
+            </geometry>
+            <material name="tibia_material">
+                <color rgba="0.49803921568627451677 0.49803921568627451677 0.49803921568627451677 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.034350000000001157385" rpy="4.3217611766192801141e-16 2.1006481850655434526e-16 -1.0400957034813095433e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibia.obj"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082543564299043192811 0.012215975630513638273 0.033115642475337048189" rpy="0 0 0"/>
+            <mass value="0.17582156291145253912" />
+            <inertia ixx="6.5153775351558298459e-05" ixy="-6.056210382916613126e-05" ixz="-1.7165392859817986117e-05" iyy="0.00090009683374289110175" iyz="-2.5261413588010218429e-06" izz="0.00091072918862152333567" />
+        </inertial>
+    </link>
+
+    <joint name="Femur-Tibia3" type="revolute">
+        <origin xyz="0.11831370849898451003 1.4398204850607498884e-16 -8.0491169285323849181e-16" rpy="-4.7097169221689461399e-16 -1.4670670663049555307e-15 -1.2663621787127591924e-16" />
+        <parent link="femur" />
+        <child link="tibia" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="Coxa-Femur4" type="revolute">
+        <origin xyz="0.044924999999999631894 0.034150000000000402256 0.024450000000000020328" rpy="1.5707963267948961139 3.330669073875466663e-16 -1.3539069738710677131e-16" />
+        <parent link="coxa" />
+        <child link="femur" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0"/>
+    </joint>
+
+    <joint name="Body-Coxa1" type="revolute">
+        <origin xyz="0.081700031797662359123 -0.12580337699943183738 -0.013800000000000003236" rpy="0 -2.0497056596268378887e-58 -0.99483767363676767204" />
+        <parent link="body2" />
+        <child link="coxa" />
+        <axis xyz="0 0 1"/>
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0"/>
+    </joint>
+</robot>
