@@ -14,7 +14,7 @@ class RaisimSimulator
 public:
     RaisimSimulator(const float rsStep, Path binaryPath);
     ~RaisimSimulator();
-
+    void updateSimulation();
 private:
     void initialize(const float rsStep);
     void addModel();

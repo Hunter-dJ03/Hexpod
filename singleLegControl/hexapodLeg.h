@@ -36,6 +36,7 @@ public:
     int id;
     Eigen::Vector3d pos;
     Eigen::Vector3d currentAngles;
+    Eigen::Vector3d currentAngularVelocities;
 
 private:
     float rsStep;

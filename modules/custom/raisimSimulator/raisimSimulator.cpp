@@ -24,6 +24,37 @@ RaisimSimulator::~RaisimSimulator() {
     server->killServer();
 }
 
+void RaisimSimulator::updateSimulation()
+{
+    /*
+    NEEDED VARIABLES 
+
+    from existing math
+        current angles
+        next angles
+        current angular velocity
+        desired angular velocity
+    
+    preset
+        ki
+        kp
+    
+    
+
+    velocityError = desiredAngularVelocities - currentAngularVelocities
+
+    if (i==0) {
+        integralError = zeroVelocity -= currentAngles;
+    } else {
+        integralError = desiredAngles -= currentAngles;
+    }
+    controlledAngularVelocities = currentAngularVelocities += vecDynElementMultiply(Kp,velocityError) += vecDynElementMultiply(Ki,integralError);
+
+    hexapod->setGeneralizedVelocity(controlledAngularVelocities);
+
+    */
+}
+
 // Initilise the Raisim Simulation
 void RaisimSimulator::initialize(const float rsStep) {
     // Make World and Size

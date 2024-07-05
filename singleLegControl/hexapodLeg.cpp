@@ -28,10 +28,12 @@ HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> ardui
 
 HexapodLeg::~HexapodLeg()
 {
-    if (arduino)
+    if (arduino) {
         arduino.reset();
-    if (simulator)
-        simulator.reset();
+    }
+    if (simulator) {
+        simulator.reset(); 
+    }
 }
 
 Eigen::MatrixXd HexapodLeg::getJacobian() const
@@ -183,6 +185,7 @@ void HexapodLeg::doJacobianTest(const int &style)
             // cout << "Next Pos" << endl << nextPos <<endl;
         }
 
+        
         setAngs(nextAngles);
 
         rsLoop.realTimeDelay();
