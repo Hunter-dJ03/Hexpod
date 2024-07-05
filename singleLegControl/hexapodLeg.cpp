@@ -17,18 +17,21 @@ namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, bool raisimSimulator, float rsStep)
+HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, bool raisimSimulator, float rsStep, Path binaryPath)
     : id(id), arduino(move(arduino)), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
 {
-    if (raisimSimulator) {
-        simulator = make_unique<RaisimSimulator>(rsStep);
+    if (raisimSimulator)
+    {
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath);
     }
 }
 
 HexapodLeg::~HexapodLeg()
 {
-    if (arduino) arduino.reset();
-    if (simulator) simulator.reset();
+    if (arduino)
+        arduino.reset();
+    if (simulator)
+        simulator.reset();
 }
 
 Eigen::MatrixXd HexapodLeg::getJacobian() const
@@ -114,7 +117,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     float radius = 0.15; // meters
     double period = 2;   // HZ
-    double cycles = 2;
+    double cycles = 10;
 
     int dur = period * cycles * 1000; // ms
     vector<double> t(dur / rsStep);
@@ -168,7 +171,8 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         if (true)
         {
-            cout << endl << i * rsStep << endl;
+            cout << endl
+                 << i * rsStep << endl;
             // cout << endl << i << endl;
             // cout << "Current Angles" << endl<< currentAngles <<endl;
             // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;

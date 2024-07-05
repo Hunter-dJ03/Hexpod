@@ -9,7 +9,7 @@
 using namespace std;
 
 const bool raisimSimulator = true;
-const float rsStep = 20; // Real Time Step (ms)
+const float rsStep = 5; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 // ArduinoController arduino("/dev/ttyACM0", 115200);
@@ -17,7 +17,7 @@ RSTimedLoop rsLoop(rsStep);
 void parseCommand(const string& command, HexapodLeg &leg);
 
 int main(int argc, char* argv[]) {
-    auto binaryPath = raisim::Path::setFromArgv(argv[0]);
+    Path binaryPath = raisim::Path::setFromArgv(argv[0]);
 
     fstream arduinoPort("/dev/ttyACM0");
 
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     
-    HexapodLeg leg(1, move(arduino), rsLoop, simulationMode, raisimSimulator, rsStep);
+    HexapodLeg leg(1, move(arduino), rsLoop, simulationMode, raisimSimulator, rsStep, binaryPath);
 
     string command;
     while (true) {

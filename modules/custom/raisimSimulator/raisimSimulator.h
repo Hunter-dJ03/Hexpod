@@ -12,16 +12,20 @@ using namespace std;
 class RaisimSimulator
 {
 public:
-    RaisimSimulator(const float rsStep);
+    RaisimSimulator(const float rsStep, Path binaryPath);
     ~RaisimSimulator();
 
-    void initialize(const float rsStep);
-    // Other simulation-related methods...
-
 private:
+    void initialize(const float rsStep);
+    void addModel();
+
     const float rsStep;
+    int numDOF;
+    Path binaryPath;
     World world;
-    unique_ptr<raisim::RaisimServer> server;
+    unique_ptr<RaisimServer> server;
+    shared_ptr<ArticulatedSystem> hexapodLegModel;
+
 };
 
 #endif

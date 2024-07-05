@@ -13,26 +13,50 @@
 using namespace std;
 using namespace raisim;
 
-RaisimSimulator::RaisimSimulator(const float rsStep) : rsStep(rsStep) 
+// Constructor - Sets key variables and starts initilisation
+RaisimSimulator::RaisimSimulator(const float rsStep, Path binaryPath) : rsStep(rsStep), binaryPath(binaryPath)
 {
     initialize(rsStep);
 }
 
+// Destructor - Kill the Raisim Simulation
 RaisimSimulator::~RaisimSimulator() {
     server->killServer();
 }
 
+// Initilise the Raisim Simulation
 void RaisimSimulator::initialize(const float rsStep) {
+    // Make World and Size
     world.setTimeStep(rsStep/1000);
     auto ground = world.addGround(-2);
 
-    // Build Server
-    // server.world_
-    server = make_unique<raisim::RaisimServer>(&world);
+    // Add Hexapod Leg Model to world
+    addModel();
+
+    // Build and launch Server
+    server = make_unique<RaisimServer>(&world);
     server->launchServer(8080);
 
+    // Wait for server connection
     cout<<"Awaiting Connection to raisim server"<<endl;
     while (!server->isConnected());
     cout<<"Server Connected"<<endl;
 }
 
+// Add Hexapod Leg Model to the Simulation
+void RaisimSimulator::addModel()
+{
+    // Add the model to the world
+    hexapodLegModel = shared_ptr<ArticulatedSystem>(world.addArticulatedSystem(binaryPath.getDirectory() + "/models/hexapod/urdf/hexapodLeg.urdf"));
+    hexapodLegModel->setName("HexapodLegModel");
+
+    // Remove Collision Meshes
+    for (int i = 0; i <= 3; ++i) {
+        for (int j = i + 1; j <= 3; ++j) {
+            hexapodLegModel->ignoreCollisionBetween(i, j);
+    }
+
+
+}
+
+}
