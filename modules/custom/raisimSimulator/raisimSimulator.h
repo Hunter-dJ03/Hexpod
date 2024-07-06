@@ -14,13 +14,19 @@ class RaisimSimulator
 public:
     RaisimSimulator(const float rsStep, Path binaryPath);
     ~RaisimSimulator();
-    void updateSimulation();
+    void setSimAngle(Eigen::Vector3d angs);
+    void setSimAngle(float th1, float th2, float th3);
+    void setSimVelocity(Eigen::Vector3d currentAngles, Eigen::Vector3d currentAngularVelocities, Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities);
 private:
     void initialize(const float rsStep);
     void addModel();
 
     const float rsStep;
-    int numDOF;
+    // int numDOF;
+    Eigen::Vector3d Kp = {1.02, 1.08, 1.03};
+    Eigen::Vector3d Ki = {3.5, 6.12, 9.69};
+
+
     Path binaryPath;
     World world;
     unique_ptr<RaisimServer> server;

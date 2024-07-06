@@ -102,24 +102,27 @@ Eigen::Vector3d HexapodLeg::doFK() const
 void HexapodLeg::moveToZero()
 {
     setAngs(0, 0, 360 * M_PI / 180);
+    // simulator->setSimAngle(0, 0, 360 * M_PI / 180);
 }
 // Move to basic standing position
 void HexapodLeg::moveToBasic()
 {
     setAngs(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
+    // simulator->setSimAngle(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
 }
 // Move to position that should fold back past limit when power disabled
 void HexapodLeg::moveToOff()
 {
     setAngs(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
+    // simulator->setSimAngle(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
 }
 
 void HexapodLeg::doJacobianTest(const int &style)
 {
 
-    float radius = 0.15; // meters
+    float radius = 0.05; // meters
     double period = 2;   // HZ
-    double cycles = 10;
+    double cycles = 3;
 
     int dur = period * cycles * 1000; // ms
     vector<double> t(dur / rsStep);
@@ -187,6 +190,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         
         setAngs(nextAngles);
+        // simulator->setSimAngle(nextAngles);
 
         rsLoop.realTimeDelay();
     }
@@ -387,6 +391,10 @@ void HexapodLeg::sendAngs()
     if (!simulationMode)
     {
         arduino->sendCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360, 2)));
+    }
+
+    if (simulator) {
+        simulator->setSimAngle(currentAngles);
     }
 }
 
