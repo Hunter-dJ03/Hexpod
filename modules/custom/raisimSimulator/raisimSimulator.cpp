@@ -36,7 +36,7 @@ void RaisimSimulator::setSimAngle(float th1, float th2, float th3)
     hexapodLegModel->setGeneralizedCoordinate(angs);
 }
 
-void RaisimSimulator::setSimVelocity(Eigen::Vector3d currentAngles, Eigen::Vector3d currentAngularVelocities, Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities)
+void RaisimSimulator::setSimVelocity(Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities)
 {
     /*
     NEEDED VARIABLES
@@ -66,12 +66,16 @@ void RaisimSimulator::setSimVelocity(Eigen::Vector3d currentAngles, Eigen::Vecto
 
     */
 
-    Eigen::Vector3d velocityError = desiredAngularVelocities - currentAngularVelocities;
-    Eigen::Vector3d positionError = nextAngles - currentAngles;
+    // Get Current Angles
+    raisim::VecDyn currentAnglesVecDyn = hexapodLegModel->getGeneralizedCoordinate();
+    raisim::VecDyn currentAngularVelocitiesVecDyn = hexapodLegModel->getGeneralizedVelocity();
+    
+    Eigen::Vector3d currentAngles = {currentAnglesVecDyn[0], currentAnglesVecDyn[1], currentAnglesVecDyn[2]};
+    Eigen::Vector3d currentAngularVelocities = {currentAngularVelocitiesVecDyn[0], currentAngularVelocitiesVecDyn[1], currentAngularVelocitiesVecDyn[2]};
 
-    Eigen::Vector3d controlledAngularVelocities = currentAngularVelocities + Kp.cwiseProduct(velocityError) + Ki.cwiseProduct(positionError);
+    Eigen::Vector3d controlledAngularVelocities = currentAngularVelocities + Kp.cwiseProduct(desiredAngularVelocities - currentAngularVelocities) + Ki.cwiseProduct(nextAngles - currentAngles);
 
-    hexapodLegModel->setGeneralizedVelocity(currentAngularVelocities);
+    hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
 }
 
 // Initilise the Raisim Simulation

@@ -16,7 +16,9 @@ public:
     ~RaisimSimulator();
     void setSimAngle(Eigen::Vector3d angs);
     void setSimAngle(float th1, float th2, float th3);
-    void setSimVelocity(Eigen::Vector3d currentAngles, Eigen::Vector3d currentAngularVelocities, Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities);
+    void setSimVelocity(Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities);
+
+    unique_ptr<RaisimServer> server;
 private:
     void initialize(const float rsStep);
     void addModel();
@@ -29,7 +31,6 @@ private:
 
     Path binaryPath;
     World world;
-    unique_ptr<RaisimServer> server;
     shared_ptr<ArticulatedSystem> hexapodLegModel;
 
 };

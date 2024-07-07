@@ -140,6 +140,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
     // Set Start Position
     setAngs(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
+    // simulator->setSimAngle(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
     cout << doFK() << endl;
 
     if (!simulationMode)
@@ -190,9 +191,12 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         
         setAngs(nextAngles);
-        // simulator->setSimAngle(nextAngles);
+
+        // simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
 
         rsLoop.realTimeDelay();
+        
+        // simulator->server->integrateWorldThreadSafe();
     }
 
     // plot
