@@ -14,7 +14,7 @@ using namespace std;
 class HexapodLeg
 {
 public:
-    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool simulationMode, bool raisimSimulator, float rsStep, Path binaryPath);
+    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
     ~HexapodLeg();
 
     Eigen::MatrixXd getJacobian() const;
@@ -46,7 +46,7 @@ private:
     unique_ptr<ArduinoController> arduino;
     RSTimedLoop& rsLoop;
 
-    bool simulationMode;
+    bool arduinoConnected;
 
     unique_ptr<RaisimSimulator> simulator;
 

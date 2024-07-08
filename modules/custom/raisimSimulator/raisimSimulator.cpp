@@ -25,56 +25,37 @@ RaisimSimulator::~RaisimSimulator()
     server->killServer();
 }
 
+// Send joint angles to simulation model with Vector3d input
 void RaisimSimulator::setSimAngle(Eigen::Vector3d angs)
 {
+    // Send joint angles to simulation model
     hexapodLegModel->setGeneralizedCoordinate(angs);
 }
 
+// Send joint angles to simulation model with joint variable inputs
 void RaisimSimulator::setSimAngle(float th1, float th2, float th3)
 {
+    // Convert input variables in combined Vector3d type
     Eigen::Vector3d angs = {th1, th2, th3};
+
+    // Send joint angles to simulation model
     hexapodLegModel->setGeneralizedCoordinate(angs);
 }
 
 void RaisimSimulator::setSimVelocity(Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities)
 {
-    /*
-    NEEDED VARIABLES
-
-    from existing math
-        current angles
-        next angles
-        current angular velocity
-        desired angular velocity
-
-    preset
-        ki
-        kp
-
-
-
-    velocityError = desiredAngularVelocities - currentAngularVelocities
-
-    if (i==0) {
-        integralError = zeroVelocity -= currentAngles;
-    } else {
-        integralError = desiredAngles -= currentAngles;
-    }
-    controlledAngularVelocities = currentAngularVelocities += vecDynElementMultiply(Kp,velocityError) += vecDynElementMultiply(Ki,integralError);
-
-    hexapod->setGeneralizedVelocity(controlledAngularVelocities);
-
-    */
-
     // Get Current Angles
     raisim::VecDyn currentAnglesVecDyn = hexapodLegModel->getGeneralizedCoordinate();
     raisim::VecDyn currentAngularVelocitiesVecDyn = hexapodLegModel->getGeneralizedVelocity();
     
+    // Convert raisim::VecDyn type to Eigen::Vector3d
     Eigen::Vector3d currentAngles = {currentAnglesVecDyn[0], currentAnglesVecDyn[1], currentAnglesVecDyn[2]};
     Eigen::Vector3d currentAngularVelocities = {currentAngularVelocitiesVecDyn[0], currentAngularVelocitiesVecDyn[1], currentAngularVelocitiesVecDyn[2]};
 
+    // Find controlled angular velocities through PI controller
     Eigen::Vector3d controlledAngularVelocities = currentAngularVelocities + Kp.cwiseProduct(desiredAngularVelocities - currentAngularVelocities) + Ki.cwiseProduct(nextAngles - currentAngles);
 
+    // Set the simulation model joint velocities
     hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
 }
 

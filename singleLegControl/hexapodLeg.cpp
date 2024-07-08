@@ -17,8 +17,8 @@ namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool simulationMode, bool raisimSimulator, float rsStep, Path binaryPath)
-    : id(id), arduino(move(arduino)), rsLoop(rsLoop), simulationMode(simulationMode), rsStep(rsStep)
+HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath)
+    : id(id), arduino(move(arduino)), rsLoop(rsLoop), arduinoConnected(arduinoConnected), rsStep(rsStep)
 {
     if (raisimSimulator)
     {
@@ -120,17 +120,22 @@ void HexapodLeg::moveToOff()
 void HexapodLeg::doJacobianTest(const int &style)
 {
 
+    // Test Control Variables
     float radius = 0.05; // meters
     double period = 2;   // HZ
     double cycles = 3;
 
+    // Find Duration
     int dur = period * cycles * 1000; // ms
+
+    // Create vector variables for plotting
     vector<double> t(dur / rsStep);
     vector<vector<double>> jointVelocity(3, vector<double>(dur / rsStep));
     vector<vector<double>> jointPosition(3, vector<double>(dur / rsStep));
     vector<vector<double>> spatialVelocity(3, vector<double>(dur / rsStep));
     vector<vector<double>> spatialPosition(3, vector<double>(dur / rsStep));
 
+    // Create vector variables for control calculations
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d desiredAngularVelocities;
     Eigen::Vector3d nextAngles;
@@ -141,30 +146,36 @@ void HexapodLeg::doJacobianTest(const int &style)
     // Set Start Position
     setAngs(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
     // simulator->setSimAngle(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
-    cout << doFK() << endl;
 
-    if (!simulationMode)
+    // Slight delay for servo motors to get to starting angle
+    if (arduinoConnected)
     {
         sleep_for(chrono::milliseconds(2000));
     }
+
+    // Update time for real time loop
     rsLoop.updateTimeDelay();
 
     // Simulation Cycle
     for (int i = 0; i <= dur / rsStep; i++)
     {
+        // Desired spatial velocity of XYZ
         desiredSpatialVelocity << 0,
             radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
             -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
 
         // desiredSpatialVelocity << 0,0,0;
 
+        // Convert Spatial velocities to joint Angular velocities
         jacobian = getJacobian();
         jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
         desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
 
+        // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
         nextPos = doFK();
 
+        // Set cycle variables for plotting
         t[i] = i * rsStep;
         for (int j = 0; j <= 2; j++)
         {
@@ -175,6 +186,7 @@ void HexapodLeg::doJacobianTest(const int &style)
             spatialPosition[j][i] = nextPos[j];
         }
 
+        // Output desired information
         if (true)
         {
             cout << endl
@@ -189,17 +201,20 @@ void HexapodLeg::doJacobianTest(const int &style)
             // cout << "Next Pos" << endl << nextPos <<endl;
         }
 
-        
+        // Send the angles to the arduino and simulation as desired        
         setAngs(nextAngles);
 
+        // Send Velcoties to the simulator
         // simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
 
+        // Implement Real time delay
         rsLoop.realTimeDelay();
         
+        // Integrate the Simulator server 
         // simulator->server->integrateWorldThreadSafe();
     }
 
-    // plot
+    // Plot graphs
     if (false)
     {
 
@@ -392,7 +407,7 @@ void HexapodLeg::setAngs(const Eigen::Vector3d &angs)
 void HexapodLeg::sendAngs()
 {
     // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
-    if (!simulationMode)
+    if (arduinoConnected)
     {
         arduino->sendCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360, 2)));
     }

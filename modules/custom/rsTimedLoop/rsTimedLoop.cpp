@@ -16,6 +16,7 @@ void RSTimedLoop::realTimeDelay() {
     // cout << next_time.time_since_epoch().count() - start_time.time_since_epoch().count() <<endl;
 }
 
+// Manually update the next time for real time delay
 void RSTimedLoop::updateTimeDelay()
 {
     next_time = chrono::high_resolution_clock::now() + interval;

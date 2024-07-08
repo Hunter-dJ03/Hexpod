@@ -24,7 +24,6 @@ private:
     void addModel();
 
     const float rsStep;
-    // int numDOF;
     Eigen::Vector3d Kp = {1.02, 1.08, 1.03};
     Eigen::Vector3d Ki = {3.5, 6.12, 9.69};
 
