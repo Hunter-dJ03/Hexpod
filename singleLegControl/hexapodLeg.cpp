@@ -410,35 +410,62 @@ void HexapodLeg::sendAngs()
     // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (arduinoConnected)
     {
-        vector<uint16_t> angleBinaryRepresentation(currentAngles.size());
+        std::vector<std::bitset<11>> angleBinaryRepresentation(currentAngles.size());
         for (int i =0; i < currentAngles.size(); i++) {
             double baseValue = currentAngles[i]* 180 / M_PI;
             if ((i+1)%3==0) {
                 baseValue = -baseValue+360;
             }
-            angleBinaryRepresentation[i] = static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i], 1));
+            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i], 1)));
+            angleBinaryRepresentation[i] = bit;
         }
+
+        for (const auto& byte : angleBinaryRepresentation) {
+            std::cout << std::bitset<11>(byte) << " ";
+        }
+        cout<<endl;
+
+        size_t totalBits = angleBinaryRepresentation.size() * 11;
+        size_t totalBytes = (totalBits + 7) / 8; // Round up to the nearest byte
+
+        // Create a vector to hold the resulting bytes
+        std::vector<uint8_t> result(totalBytes, 0);
+
+        // Iterate through the bitsets and pack them into the result vector
+        size_t bitIndex = 0;
+        for (const auto& bitset : angleBinaryRepresentation) {
+            for (size_t i = 0; i < 11; ++i, ++bitIndex) {
+                if (bitset[i]) {
+                    result[bitIndex / 8] |= (1 << (bitIndex % 8));
+                }
+            }
+        }
+
+        for (const auto& byte : result) {
+            std::cout << std::bitset<8>(byte) << " ";
+        }
+        cout<<endl;
 
         // int numBits = 11;
-        std::bitset<11*3> fullBinary;
-        int bitPosition = 0;
+        // std::bitset<11*3> fullBinary;
+        // int bitPosition = 0;
 
-        for (uint16_t num : angleBinaryRepresentation) {
-            std::bitset<11> binary(num);
+        // for (uint16_t num : angleBinaryRepresentation) {
+        //     std::bitset<binaryLength> binary(num);
 
-            for (int i = 0; i < 11; ++i) {
-                fullBinary[bitPosition + i] = binary[i];
-            }
+        //     for (int i = 0; i < 11; ++i) {
+        //         fullBinary[bitPosition + i] = binary[i];
+        //     }
 
-            bitPosition += 11;
+        //     bitPosition += 11;
 
-            std::cout << "Binary representation: " << binary << std::endl;
-        }
+        //     std::cout << "Binary representation: " << binary << std::endl;
+        // }
 
-        std::cout << "Full Binary representation: " << fullBinary << std::endl;
+        // std::cout << "Full Binary representation: " << fullBinary << std::endl;
         
-
-        arduino->sendStringCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI +coxaAngleInit, 1), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI + femurAngleInit, 1), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360 + tibiaAngleInit, 1)));
+        arduino->sendBitSetCommand(result);
+        // arduino->sendStringCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI +coxaAngleInit, 1), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI + femurAngleInit, 1), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360 + tibiaAngleInit, 1)));
     }
 
     if (simulator) {
