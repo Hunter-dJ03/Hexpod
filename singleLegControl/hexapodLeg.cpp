@@ -11,6 +11,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <bitset>
 
 using namespace std;
 namespace plt = matplotlibcpp;
@@ -409,7 +410,35 @@ void HexapodLeg::sendAngs()
     // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (arduinoConnected)
     {
-        arduino->sendCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI, 2), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360, 2)));
+        vector<uint16_t> angleBinaryRepresentation(currentAngles.size());
+        for (int i =0; i < currentAngles.size(); i++) {
+            double baseValue = currentAngles[i]* 180 / M_PI;
+            if ((i+1)%3==0) {
+                baseValue = -baseValue+360;
+            }
+            angleBinaryRepresentation[i] = static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i], 1));
+        }
+
+        // int numBits = 11;
+        std::bitset<11*3> fullBinary;
+        int bitPosition = 0;
+
+        for (uint16_t num : angleBinaryRepresentation) {
+            std::bitset<11> binary(num);
+
+            for (int i = 0; i < 11; ++i) {
+                fullBinary[bitPosition + i] = binary[i];
+            }
+
+            bitPosition += 11;
+
+            std::cout << "Binary representation: " << binary << std::endl;
+        }
+
+        std::cout << "Full Binary representation: " << fullBinary << std::endl;
+        
+
+        arduino->sendStringCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI +coxaAngleInit, 1), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI + femurAngleInit, 1), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360 + tibiaAngleInit, 1)));
     }
 
     if (simulator) {

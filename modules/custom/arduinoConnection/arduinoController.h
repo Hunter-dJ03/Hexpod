@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <thread>
 #include <atomic>
+#include <bitset>
 
 using namespace std;
 
@@ -14,7 +15,8 @@ public:
     ArduinoController();
     ~ArduinoController();
 
-    void sendCommand(const string& command);
+    void sendStringCommand(const string& command);
+    void sendBitSetCommand(std::vector<uint8_t>& command);
     void closeConnection();
     string readData();
 

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const bool raisimSimulator = true;
+const bool raisimSimulator = false;
 const float rsStep = 5; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);

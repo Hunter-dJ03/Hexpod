@@ -63,6 +63,8 @@ private:
     constexpr static int femurAngleInit = 94;
     constexpr static int tibiaAngleInit = 17;
 
+    const vector<int> angleInits = {96, 94, 17};
+
     constexpr static int centreLegOffset = 125;
     constexpr static int diagLegOffset = 150;
     constexpr static int diagLegOffsetAngle = 57;
