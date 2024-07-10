@@ -17,3 +17,9 @@ float Utils::roundToDecimalPlaces(double value, int decimalPlaces) {
     double scale = std::pow(10.0, decimalPlaces);
     return std::round(value * scale) / scale;
 }
+
+// Utility function to round a value to a set number of decimal places
+float Utils::toFixedPoint(double value, int decimalPlaces) {
+    double scale = std::pow(10.0, decimalPlaces);
+    return std::round(value * scale);
+}

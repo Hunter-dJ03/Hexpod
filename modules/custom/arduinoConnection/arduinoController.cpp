@@ -20,9 +20,25 @@ ArduinoController::~ArduinoController()
 }
 
 // Sends input command to arduino
-void ArduinoController::sendCommand(const std::string &command)
+void ArduinoController::sendStringCommand(const std::string &command)
 {
     boost::asio::write(serial, boost::asio::buffer(command + "\n"));
+}
+
+// Sends input command to arduino
+void ArduinoController::sendBitSetCommand(std::vector<uint8_t> &command)
+{
+    boost::asio::write(serial, boost::asio::buffer(command));
+
+    // std::size_t bits_sent = command.size() * 8; // Each byte in the bitstream contains 8 bits
+    // std::cout << "Sending " << bits_sent << " bits" << std::endl;
+
+    // if (bits_sent > maxBitSent)
+    // {
+    //     maxBitSent = bits_sent;
+    // };
+
+    // std::cout << "Max Bits Sent " << maxBitSent << std::endl;
 }
 
 // Reads commands from the serial connection with arduino
