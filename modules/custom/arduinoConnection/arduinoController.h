@@ -25,6 +25,8 @@ private:
     boost::asio::serial_port serial;
     thread read_thread;
     atomic<bool> running;
+
+    // int maxBitSent = 0;
 };
 
 #endif // ARDUINOCONTROLLER_H
