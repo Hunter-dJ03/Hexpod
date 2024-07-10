@@ -8,11 +8,10 @@
 
 using namespace std;
 
-const bool raisimSimulator = false;
-const float rsStep = 5; // Real Time Step (ms)
+const bool raisimSimulator = true;
+const float rsStep = 1; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
-// ArduinoController arduino("/dev/ttyACM0", 115200);
 
 void parseCommand(const string& command, HexapodLeg &leg);
 
@@ -33,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     if (arduinoPort) {
         // Set the Arduino Controller up with port and abud rate
-        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 115200);
+        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 921600);
 
         cout << "Arduino connected." << endl;
         

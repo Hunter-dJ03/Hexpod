@@ -122,8 +122,8 @@ void HexapodLeg::doJacobianTest(const int &style)
 {
 
     // Test Control Variables
-    float radius = 0.05; // meters
-    double period = 2;   // HZ
+    float radius = 0.15; // meters
+    double period = 5;   // HZ
     double cycles = 3;
 
     // Find Duration
