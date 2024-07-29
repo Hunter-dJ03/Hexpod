@@ -41,15 +41,25 @@ Eigen::MatrixXd HexapodLeg::getJacobian() const
 {
     Eigen::MatrixXd Jac(3, 3);
 
-    Jac(0, 0) = -sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
-    Jac(0, 1) = -cos(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
-    Jac(0, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * cos(currentAngles[0]);
-    Jac(1, 0) = cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
-    Jac(1, 1) = -sin(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
-    Jac(1, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * sin(currentAngles[0]);
+    Jac(0, 0) = -sin(bodyLegAngles[1] + currentAngles[0])*(coxaX + tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]));
+    Jac(0, 1) = -cos(bodyLegAngles[1] + currentAngles[0])*(tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
+    Jac(0, 2) = -tibiaX*cos(bodyLegAngles[1] + currentAngles[0])*sin(currentAngles[1] + currentAngles[2]);
+    Jac(1, 0) = cos(bodyLegAngles[1] + currentAngles[0])*(coxaX + tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]));
+    Jac(1, 1) = -sin(bodyLegAngles[1] + currentAngles[0])*(tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
+    Jac(1, 2) = -tibiaX*sin(bodyLegAngles[1] + currentAngles[0])*sin(currentAngles[1] + currentAngles[2]);
     Jac(2, 0) = 0;
-    Jac(2, 1) = 0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]);
-    Jac(2, 2) = 0.221426 * cos(currentAngles[1] + currentAngles[2]);
+    Jac(2, 1) = tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]);
+    Jac(2, 2) = tibiaX*cos(currentAngles[1] + currentAngles[2]);
+
+    // Jac(0, 0) = -sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
+    // Jac(0, 1) = -cos(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
+    // Jac(0, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * cos(currentAngles[0]);
+    // Jac(1, 0) = cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
+    // Jac(1, 1) = -sin(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
+    // Jac(1, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * sin(currentAngles[0]);
+    // Jac(2, 0) = 0;
+    // Jac(2, 1) = 0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]);
+    // Jac(2, 2) = 0.221426 * cos(currentAngles[1] + currentAngles[2]);
 
     // cout << "Jac" << endl << Jac << endl;
 
@@ -62,13 +72,13 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z) const
 
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
 
-    float dx = x;
-    float dy = y;
-    float dz = z - coxaZ;
+    float dx = x/1000;
+    float dy = y/1000;
+    float dz = z/1000 - coxaZ;
 
     // cout<<endl<<dx<<","<<dy<<","<<dz<<endl;
 
-    float H = sqrt(pow(x, 2) + pow(y, 2)) - coxaX;
+    float H = sqrt(pow(dx, 2) + pow(dy, 2)) - coxaX;
     float L = sqrt(pow(H, 2) + pow(dz, 2));
 
     // cout<<endl<<H<<","<<L<<","<<endl;
@@ -79,7 +89,7 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z) const
 
     // cout<<endl<<omega<<","<<beta<<","<<phi<<","<<endl;
 
-    float th1 = atan2(y, x);
+    float th1 = atan2(dy, dx);
     float th2 = beta + omega;
     float th3 = M_PI + phi;
 
@@ -91,10 +101,16 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z) const
 // Perform forward kinematics of the hexapod leg to get end affector position
 Eigen::Vector3d HexapodLeg::doFK() const
 {
+    // Eigen::Vector3d pos(
+    //     cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
+    //     sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
+    //     0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]) + 0.01065);
+
     Eigen::Vector3d pos(
-        cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
-        sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
-        0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]) + 0.01065);
+
+        coxaX*cos(bodyLegAngles[1] + currentAngles[0]) + bodyLegAngles[1]*cos(bodyLegAngles[1]) + tibiaX*cos(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1]),
+        coxaX*sin(bodyLegAngles[1] + currentAngles[0]) + bodyLegAngles[1]*sin(bodyLegAngles[1]) + tibiaX*cos(currentAngles[1] + currentAngles[2])*sin(bodyLegAngles[1] + currentAngles[0]) + femurX*sin(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1]),
+        coxaZ + tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
 
     return pos;
 }
@@ -407,7 +423,7 @@ void HexapodLeg::setAngs(const Eigen::Vector3d &angs)
 // Send the angles of the servo motors to the arduino
 void HexapodLeg::sendAngs()
 {
-    // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
+    cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (arduinoConnected)
     {
         std::vector<std::bitset<11>> angleBinaryRepresentation(currentAngles.size());
@@ -420,10 +436,10 @@ void HexapodLeg::sendAngs()
             angleBinaryRepresentation[i] = bit;
         }
 
-        for (const auto& byte : angleBinaryRepresentation) {
-            std::cout << std::bitset<11>(byte) << " ";
-        }
-        cout<<endl;
+        // for (const auto& byte : angleBinaryRepresentation) {
+        //     std::cout << std::bitset<11>(byte) << " ";
+        // }
+        // cout<<endl;
 
         size_t totalBits = angleBinaryRepresentation.size() * 11;
         size_t totalBytes = (totalBits + 7) / 8; // Round up to the nearest byte
@@ -441,29 +457,11 @@ void HexapodLeg::sendAngs()
             }
         }
 
-        for (const auto& byte : result) {
-            std::cout << std::bitset<8>(byte) << " ";
-        }
-        cout<<endl;
-
-        // int numBits = 11;
-        // std::bitset<11*3> fullBinary;
-        // int bitPosition = 0;
-
-        // for (uint16_t num : angleBinaryRepresentation) {
-        //     std::bitset<binaryLength> binary(num);
-
-        //     for (int i = 0; i < 11; ++i) {
-        //         fullBinary[bitPosition + i] = binary[i];
-        //     }
-
-        //     bitPosition += 11;
-
-        //     std::cout << "Binary representation: " << binary << std::endl;
+        // for (const auto& byte : result) {
+        //     std::cout << std::bitset<8>(byte) << " ";
         // }
+        // cout<<endl;
 
-        // std::cout << "Full Binary representation: " << fullBinary << std::endl;
-        
         arduino->sendBitSetCommand(result);
         // arduino->sendStringCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI +coxaAngleInit, 1), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI + femurAngleInit, 1), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360 + tibiaAngleInit, 1)));
     }

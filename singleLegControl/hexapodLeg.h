@@ -50,10 +50,10 @@ private:
 
     unique_ptr<RaisimSimulator> simulator;
 
-    constexpr static float coxaX = 44.925;
-    constexpr static float coxaZ = 10.650;
-    constexpr static float femurX = 118.314;
-    constexpr static float tibiaX = 221.426;
+    constexpr static float coxaX = 0.044925;
+    constexpr static float coxaZ = 0.01065;
+    constexpr static float femurX = 0.118314;
+    constexpr static float tibiaX = 0.221426;
 
     constexpr static int coxaAngleOffset = 6;
     constexpr static int femurAngleOffset = 0;
@@ -64,6 +64,9 @@ private:
     constexpr static int tibiaAngleInit = 17;
 
     const vector<int> angleInits = {96, 94, 17};
+
+    const vector<float> bodyLegOffsets = {0.150, 0.125, 0.150, 0.150, 0.125, 0.150};
+    const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
 
     constexpr static int centreLegOffset = 125;
     constexpr static int diagLegOffset = 150;
