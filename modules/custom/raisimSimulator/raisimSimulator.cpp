@@ -14,7 +14,7 @@ using namespace std;
 using namespace raisim;
 
 // Constructor - Sets key variables and starts initilisation
-RaisimSimulator::RaisimSimulator(const float rsStep, Path binaryPath) : rsStep(rsStep), binaryPath(binaryPath)
+RaisimSimulator::RaisimSimulator(const float rsStep, Path binaryPath, const string URDFName) : rsStep(rsStep), binaryPath(binaryPath), URDFName(URDFName)
 {
     initialize(rsStep);
 }
@@ -84,7 +84,7 @@ void RaisimSimulator::initialize(const float rsStep)
 void RaisimSimulator::addModel()
 {
     // Add the model to the world
-    hexapodLegModel = shared_ptr<ArticulatedSystem>(world.addArticulatedSystem(binaryPath.getDirectory() + "/models/hexapod/urdf/hexapodLeg.urdf"));
+    hexapodLegModel = shared_ptr<ArticulatedSystem>(world.addArticulatedSystem(binaryPath.getDirectory() + "/models/hexapod/urdf/" + URDFName));
     hexapodLegModel->setName("HexapodLegModel");
 
     // Remove Collision Meshes

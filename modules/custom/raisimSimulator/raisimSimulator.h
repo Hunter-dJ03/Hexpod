@@ -12,7 +12,7 @@ using namespace std;
 class RaisimSimulator
 {
 public:
-    RaisimSimulator(const float rsStep, Path binaryPath);
+    RaisimSimulator(const float rsStep, Path binaryPath, const string URDFName);
     ~RaisimSimulator();
     void setSimAngle(Eigen::Vector3d angs);
     void setSimAngle(float th1, float th2, float th3);
@@ -28,6 +28,7 @@ private:
     Eigen::Vector3d Ki = {3.5, 6.12, 9.69};
 
 
+    string URDFName;
     Path binaryPath;
     World world;
     shared_ptr<ArticulatedSystem> hexapodLegModel;

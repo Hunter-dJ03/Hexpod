@@ -23,7 +23,7 @@ HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> ardui
 {
     if (raisimSimulator)
     {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath);
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodLeg.urdf");
     }
 }
 

@@ -19,17 +19,17 @@ include_directories(
 )
 
 # Add executables
-add_executable(singleLegControl
-    singleLegControl.cpp
+add_executable(multiLegControl
+    multiLegControl.cpp
     ../modules/custom/arduinoConnection/arduinoController.cpp
-    hexapodLeg.cpp
+    hexapod.cpp
     ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
     ../modules/custom/utilities/utils.cpp
     ../modules/custom/raisimSimulator/raisimSimulator.cpp
 )
 
 # Link libraries to executables
-target_link_libraries(singleLegControl PUBLIC 
+target_link_libraries(multiLegControl PUBLIC 
     fmt::fmt
     ${Boost_LIBRARIES}
     ${PYTHON_LIBRARIES}
@@ -37,13 +37,13 @@ target_link_libraries(singleLegControl PUBLIC
 )
 
 if(NOT WIN32)
-  target_link_libraries(singleLegControl PUBLIC pthread)
+  target_link_libraries(multiLegControl PUBLIC pthread)
 else()
-  target_link_libraries(singleLegControl PUBLIC Ws2_32 Winmm)
+  target_link_libraries(multiLegControl PUBLIC Ws2_32 Winmm)
 endif()
 
-target_include_directories(singleLegControl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-# target_link_libraries(singleLegControl PUBLIC ${PYTHON_LIBRARIES})
+target_include_directories(multiLegControl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# target_link_libraries(multiLegControl PUBLIC ${PYTHON_LIBRARIES})
 
 file(COPY "../modules/models" DESTINATION ${CMAKE_BINARY_DIR})
 

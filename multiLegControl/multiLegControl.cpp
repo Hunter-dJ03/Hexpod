@@ -1,6 +1,6 @@
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
-#include "hexapodLeg.h"
+#include "hexapod.h"
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -13,7 +13,7 @@ const float rsStep = 1; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 
-void parseCommand(const string& command, HexapodLeg &leg);
+void parseCommand(const string& command, Hexapod &leg);
 
 // Main control function
 int main(int argc, char* argv[]) {
@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     
-    // Create HexapodLeg 
-    HexapodLeg leg(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
+    // Create Hexapod 
+    Hexapod hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
 
     // Placeholder variables for command input
     string command;
@@ -64,24 +64,24 @@ int main(int argc, char* argv[]) {
         };
 
         // Parse the command for desired control
-        parseCommand(command, leg);
+        parseCommand(command, hexapod);
     }
     
     return 0;
 }
 
 // Takes command input and if valid, performs the desired operations
-void parseCommand(const string& command, HexapodLeg &leg) {
+void parseCommand(const string& command, Hexapod &hexapod) {
     if (command == "zero") {
-        leg.moveToZero();
+        hexapod.moveToZero();
     } else if (command == "basic") {
-        leg.moveToBasic();
+        hexapod.moveToBasic();
     } else if (command == "off") {
-        leg.moveToOff();
+        hexapod.moveToOff();
     } else if (command == "ikTest") {
-        leg.doBodyIKTest();
+        hexapod.doBodyIKTest();
     } else if (command == "jacTest") {
-        leg.doJacobianTest(1);
+        hexapod.doJacobianTest(1);
     } else {
         cout << "Unknown command: " << command << endl;
     }

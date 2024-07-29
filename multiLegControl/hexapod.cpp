@@ -1,4 +1,4 @@
-#include "hexapodLeg.h"
+#include "hexapod.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "../modules/custom/utilities/utils.h"
 #include "../modules/custom/raisimSimulator/raisimSimulator.h"
@@ -18,16 +18,16 @@ namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
-HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath)
+Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath)
     : id(id), arduino(move(arduino)), rsLoop(rsLoop), arduinoConnected(arduinoConnected), rsStep(rsStep)
 {
     if (raisimSimulator)
     {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath);
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapod.urdf");
     }
 }
 
-HexapodLeg::~HexapodLeg()
+Hexapod::~Hexapod()
 {
     if (arduino) {
         arduino.reset();
@@ -37,7 +37,7 @@ HexapodLeg::~HexapodLeg()
     }
 }
 
-Eigen::MatrixXd HexapodLeg::getJacobian() const
+Eigen::MatrixXd Hexapod::getJacobian() const
 {
     Eigen::MatrixXd Jac(3, 3);
 
@@ -67,7 +67,7 @@ Eigen::MatrixXd HexapodLeg::getJacobian() const
 }
 
 // Perform inverse kinematics to get desired control engles
-Eigen::Vector3d HexapodLeg::doLegIK(float x, float y, float z) const
+Eigen::Vector3d Hexapod::doLegIK(float x, float y, float z) const
 {
 
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
@@ -99,7 +99,7 @@ Eigen::Vector3d HexapodLeg::doLegIK(float x, float y, float z) const
 }
 
 // Perform inverse kinematics to get desired control engles
-Eigen::Vector3d HexapodLeg::doBodyIK(float x, float y, float z) const
+Eigen::Vector3d Hexapod::doBodyIK(float x, float y, float z) const
 {
 
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
@@ -135,7 +135,7 @@ Eigen::Vector3d HexapodLeg::doBodyIK(float x, float y, float z) const
 
 
 // Perform forward kinematics of the hexapod leg to get end affector position
-Eigen::Vector3d HexapodLeg::doFK() const
+Eigen::Vector3d Hexapod::doFK() const
 {
     // Eigen::Vector3d pos(
     //     cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
@@ -152,25 +152,25 @@ Eigen::Vector3d HexapodLeg::doFK() const
 }
 
 // Move to straight leg position
-void HexapodLeg::moveToZero()
+void Hexapod::moveToZero()
 {
     setAngs(0, 0, 360 * M_PI / 180);
     // simulator->setSimAngle(0, 0, 360 * M_PI / 180);
 }
 // Move to basic standing position
-void HexapodLeg::moveToBasic()
+void Hexapod::moveToBasic()
 {
     setAngs(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
     // simulator->setSimAngle(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
 }
 // Move to position that should fold back past limit when power disabled
-void HexapodLeg::moveToOff()
+void Hexapod::moveToOff()
 {
     setAngs(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
     // simulator->setSimAngle(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
 }
 
-void HexapodLeg::doJacobianTest(const int &style)
+void Hexapod::doJacobianTest(const int &style)
 {
 
     // Test Control Variables
@@ -354,7 +354,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 }
 
 // Test the IK position control in X Y Z axis individually
-void HexapodLeg::doLegIKTest()
+void Hexapod::doLegIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
@@ -443,7 +443,7 @@ void HexapodLeg::doLegIKTest()
 }
 
 // Test the IK position control in X Y Z axis individually
-void HexapodLeg::doBodyIKTest()
+void Hexapod::doBodyIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
@@ -532,7 +532,7 @@ void HexapodLeg::doBodyIKTest()
 }
 
 // Set Angles Overload for 3 individual angle input values
-void HexapodLeg::setAngs(float coxa, float femur, float tibia)
+void Hexapod::setAngs(float coxa, float femur, float tibia)
 {
     currentAngles(0) = coxa;
     currentAngles(1) = femur;
@@ -540,13 +540,13 @@ void HexapodLeg::setAngs(float coxa, float femur, float tibia)
     sendAngs();
 }
 // Set Angles Overload for 1x3 eigen vector
-void HexapodLeg::setAngs(const Eigen::Vector3d &angs)
+void Hexapod::setAngs(const Eigen::Vector3d &angs)
 {
     currentAngles = angs;
     sendAngs();
 }
 // Send the angles of the servo motors to the arduino
-void HexapodLeg::sendAngs()
+void Hexapod::sendAngs()
 {
     cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (arduinoConnected)
@@ -597,18 +597,18 @@ void HexapodLeg::sendAngs()
 }
 
 // Move to Position Overload for 3 individual position input values
-void HexapodLeg::moveToPos(float x, float y, float z)
+void Hexapod::moveToPos(float x, float y, float z)
 {
     sendPos(x, y, z);
 };
 // Move to Position Overload for 1x3 eigen vector
-void HexapodLeg::moveToPos(const Eigen::Vector3d &pos)
+void Hexapod::moveToPos(const Eigen::Vector3d &pos)
 {
     // cout <<endl<< pos <<endl;
     sendPos(pos[0], pos[1], pos[2]);
 }
 // Move to a desired 3D coordinate
-void HexapodLeg::sendPos(float x, float y, float z)
+void Hexapod::sendPos(float x, float y, float z)
 {
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
 

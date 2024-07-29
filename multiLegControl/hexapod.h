@@ -11,11 +11,11 @@
 
 using namespace std;
 
-class HexapodLeg
+class Hexapod
 {
 public:
-    HexapodLeg(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
-    ~HexapodLeg();
+    Hexapod(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
+    ~Hexapod();
 
     Eigen::MatrixXd getJacobian() const;
     Eigen::Vector3d doLegIK(float x, float y, float z) const;
