@@ -17,13 +17,13 @@ public:
     Hexapod(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
     ~Hexapod();
 
-    Eigen::MatrixXd getJacobian() const;
+    Eigen::MatrixXd getJacobian(int legNum) const;
     Eigen::Vector3d doLegIK(float x, float y, float z) const;
     Eigen::Vector3d doBodyIK(float x, float y, float z) const;
     Eigen::Vector3d doFK() const;
 
     void setAngs(float coxa, float femur, float tibia);
-    void setAngs(const Eigen::Vector3d& angs);
+    void setAngs(const Eigen::VectorXd& angs);
     void moveToPos(float x, float y, float z);
     void moveToPos(const Eigen::Vector3d& pos);
 
@@ -37,7 +37,7 @@ public:
 
     int id;
     Eigen::Vector3d pos;
-    Eigen::Vector3d currentAngles;
+    Eigen::VectorXd currentAngles;
     Eigen::Vector3d currentAngularVelocities;
 
 private:

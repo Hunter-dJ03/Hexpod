@@ -14,7 +14,7 @@ class RaisimSimulator
 public:
     RaisimSimulator(const float rsStep, Path binaryPath, const string URDFName);
     ~RaisimSimulator();
-    void setSimAngle(Eigen::Vector3d angs);
+    void setSimAngle(Eigen::VectorXd angs);
     void setSimAngle(float th1, float th2, float th3);
     void setSimVelocity(Eigen::Vector3d nextAngles, Eigen::Vector3d desiredAngularVelocities);
 

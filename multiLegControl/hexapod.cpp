@@ -25,6 +25,8 @@ Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RS
     {
         simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapod.urdf");
     }
+
+    currentAngles = Eigen::VectorXd(18);
 }
 
 Hexapod::~Hexapod()
@@ -37,19 +39,19 @@ Hexapod::~Hexapod()
     }
 }
 
-Eigen::MatrixXd Hexapod::getJacobian() const
+Eigen::MatrixXd Hexapod::getJacobian(int legNum) const
 {
     Eigen::MatrixXd Jac(3, 3);
 
-    Jac(0, 0) = -sin(bodyLegAngles[1] + currentAngles[0])*(coxaX + tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]));
-    Jac(0, 1) = -cos(bodyLegAngles[1] + currentAngles[0])*(tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
-    Jac(0, 2) = -tibiaX*cos(bodyLegAngles[1] + currentAngles[0])*sin(currentAngles[1] + currentAngles[2]);
-    Jac(1, 0) = cos(bodyLegAngles[1] + currentAngles[0])*(coxaX + tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]));
-    Jac(1, 1) = -sin(bodyLegAngles[1] + currentAngles[0])*(tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
-    Jac(1, 2) = -tibiaX*sin(bodyLegAngles[1] + currentAngles[0])*sin(currentAngles[1] + currentAngles[2]);
+    Jac(0, 0) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(coxaX + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]));
+    Jac(0, 1) = -cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]));
+    Jac(0, 2) = -tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
+    Jac(1, 0) = cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(coxaX + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]));
+    Jac(1, 1) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]));
+    Jac(1, 2) = -tibiaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
     Jac(2, 0) = 0;
-    Jac(2, 1) = tibiaX*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(currentAngles[1]);
-    Jac(2, 2) = tibiaX*cos(currentAngles[1] + currentAngles[2]);
+    Jac(2, 1) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]);
+    Jac(2, 2) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
 
     // Jac(0, 0) = -sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
     // Jac(0, 1) = -cos(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
@@ -154,27 +156,40 @@ Eigen::Vector3d Hexapod::doFK() const
 // Move to straight leg position
 void Hexapod::moveToZero()
 {
-    setAngs(0, 0, 360 * M_PI / 180);
-    // simulator->setSimAngle(0, 0, 360 * M_PI / 180);
+    Eigen::VectorXd zeroAnglesVector(18);       
+    float zeroAngles[3] = {0, 0, 360 * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        zeroAnglesVector[i] = zeroAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(zeroAnglesVector);
 }
 // Move to basic standing position
 void Hexapod::moveToBasic()
 {
-    setAngs(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
-    // simulator->setSimAngle(0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180);
+    Eigen::VectorXd basicAnglesVector(18);
+    float basicAngles[3] = {0 * M_PI / 180, 40 * M_PI / 180, (360 - 102) * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        basicAnglesVector[i] = basicAngles[i % 3]; // Repeat the set of 3 angles
+    }
+
+    setAngs(basicAnglesVector);
 }
 // Move to position that should fold back past limit when power disabled
 void Hexapod::moveToOff()
 {
-    setAngs(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
-    // simulator->setSimAngle(0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180);
+    Eigen::VectorXd offAnglesVector(18);
+    float offAngles[3] = {0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(offAnglesVector);
 }
 
 void Hexapod::doJacobianTest(const int &style)
 {
 
     // Test Control Variables
-    float radius = 0.15; // meters
+    float radius = 0.05; // meters
     double period = 5;   // HZ
     double cycles = 3;
 
@@ -182,23 +197,27 @@ void Hexapod::doJacobianTest(const int &style)
     int dur = period * cycles * 1000; // ms
 
     // Create vector variables for plotting
-    vector<double> t(dur / rsStep);
-    vector<vector<double>> jointVelocity(3, vector<double>(dur / rsStep));
-    vector<vector<double>> jointPosition(3, vector<double>(dur / rsStep));
-    vector<vector<double>> spatialVelocity(3, vector<double>(dur / rsStep));
-    vector<vector<double>> spatialPosition(3, vector<double>(dur / rsStep));
+    // vector<double> t(dur / rsStep);
+    // vector<vector<double>> jointVelocity(3, vector<double>(dur / rsStep));
+    // vector<vector<double>> jointPosition(3, vector<double>(dur / rsStep));
+    // vector<vector<double>> spatialVelocity(3, vector<double>(dur / rsStep));
+    // vector<vector<double>> spatialPosition(3, vector<double>(dur / rsStep));
 
     // Create vector variables for control calculations
     Eigen::Vector3d desiredSpatialVelocity;
-    Eigen::Vector3d desiredAngularVelocities;
-    Eigen::Vector3d nextAngles;
-    Eigen::Vector3d nextPos;
+    Eigen::Vector3d calculatedSpatialVelocity;
+    Eigen::VectorXd desiredAngularVelocities(18);
+    Eigen::VectorXd nextAngles(18);
+    // Eigen::Vector3d nextPos;
     Eigen::MatrixXd jacobian;
     Eigen::MatrixXd jacobianPseudoInverse;
 
     // Set Start Position
-    setAngs(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
-    // simulator->setSimAngle(0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180);
+    float offAngles[3] = {0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(nextAngles);
 
     // Slight delay for servo motors to get to starting angle
     if (arduinoConnected)
@@ -212,32 +231,40 @@ void Hexapod::doJacobianTest(const int &style)
     // Simulation Cycle
     for (int i = 0; i <= dur / rsStep; i++)
     {
-        // Desired spatial velocity of XYZ
-        desiredSpatialVelocity << 0,
-            radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
-            -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
-
         // desiredSpatialVelocity << 0,0,0;
+        // Desired spatial velocity of XYZ
+        // desiredSpatialVelocity << 0,
+        //     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+        //     -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+
+        for (int legNum = 0; legNum < 6; ++legNum) {
+            jacobian = getJacobian(legNum);
+            jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
+            calculatedSpatialVelocity = jacobianPseudoInverse * desiredSpatialVelocity;
+
+            for (int joint = 0; joint < 3; ++joint) {
+                nextAngles[legNum*3+joint] = calculatedSpatialVelocity[joint]; // Repeat the set of 3 angles
+            }
+        }
+        
 
         // Convert Spatial velocities to joint Angular velocities
-        jacobian = getJacobian();
-        jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
-        desiredAngularVelocities = jacobianPseudoInverse * desiredSpatialVelocity;
+        
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        nextPos = doFK();
+        // nextPos = doFK();
 
         // Set cycle variables for plotting
-        t[i] = i * rsStep;
-        for (int j = 0; j <= 2; j++)
-        {
-            // pos
-            jointVelocity[j][i] = desiredAngularVelocities[j];
-            jointPosition[j][i] = nextAngles[j];
-            spatialVelocity[j][i] = desiredSpatialVelocity[j];
-            spatialPosition[j][i] = nextPos[j];
-        }
+        // t[i] = i * rsStep;
+        // for (int j = 0; j <= 2; j++)
+        // {
+        //     // pos
+        //     jointVelocity[j][i] = desiredAngularVelocities[j];
+        //     jointPosition[j][i] = nextAngles[j];
+        //     spatialVelocity[j][i] = desiredSpatialVelocity[j];
+        //     spatialPosition[j][i] = nextPos[j];
+        // }
 
         // Output desired information
         if (true)
@@ -250,7 +277,7 @@ void Hexapod::doJacobianTest(const int &style)
             // cout << "Jacobian" << endl<<jacobian<<endl;
             // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
             // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-            // cout << "Next Angles" << endl << nextAngles <<endl;
+            cout << "Next Angles" << endl << nextAngles <<endl;
             // cout << "Next Pos" << endl << nextPos <<endl;
         }
 
@@ -268,10 +295,11 @@ void Hexapod::doJacobianTest(const int &style)
     }
 
     // Plot graphs
+    /*
     if (false)
     {
 
-        /****** Spacial Position*/
+        /****** Spacial Position
         plt::figure_size(1200, 380 * 1.5);
 
         plt::subplot(3, 1, 1);
@@ -290,7 +318,7 @@ void Hexapod::doJacobianTest(const int &style)
         plt::ylabel("Z (m)");
         plt::xlabel("Time (ms)");
 
-        /****** Spacial Velocity*/
+        /****** Spacial Velocity
         plt::figure_size(1200, 380 * 1.5);
 
         plt::subplot(3, 1, 1);
@@ -309,7 +337,7 @@ void Hexapod::doJacobianTest(const int &style)
         plt::ylabel("Z (m/s)");
         plt::xlabel("Time (ms)");
 
-        /****** Joint Velocity*/
+        /****** Joint Velocity
         plt::figure_size(1200, 380 * 1.5);
 
         plt::subplot(3, 1, 1);
@@ -328,7 +356,7 @@ void Hexapod::doJacobianTest(const int &style)
         plt::ylabel("Tibia (rad/s)");
         plt::xlabel("Time (ms)");
 
-        /****** Joint Position*/
+        /****** Joint Position
         plt::figure_size(1200, 380 * 1.5);
 
         plt::subplot(3, 1, 1);
@@ -349,7 +377,7 @@ void Hexapod::doJacobianTest(const int &style)
 
         plt::show();
     }
-
+    */
     return;
 }
 
@@ -540,7 +568,7 @@ void Hexapod::setAngs(float coxa, float femur, float tibia)
     sendAngs();
 }
 // Set Angles Overload for 1x3 eigen vector
-void Hexapod::setAngs(const Eigen::Vector3d &angs)
+void Hexapod::setAngs(const Eigen::VectorXd &angs)
 {
     currentAngles = angs;
     sendAngs();
@@ -548,7 +576,7 @@ void Hexapod::setAngs(const Eigen::Vector3d &angs)
 // Send the angles of the servo motors to the arduino
 void Hexapod::sendAngs()
 {
-    cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
+    // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
     if (arduinoConnected)
     {
         std::vector<std::bitset<11>> angleBinaryRepresentation(currentAngles.size());
@@ -557,7 +585,7 @@ void Hexapod::sendAngs()
             if ((i+1)%3==0) {
                 baseValue = -baseValue+360;
             }
-            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i], 1)));
+            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i%3], 1)));
             angleBinaryRepresentation[i] = bit;
         }
 

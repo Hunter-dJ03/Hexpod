@@ -26,7 +26,7 @@ RaisimSimulator::~RaisimSimulator()
 }
 
 // Send joint angles to simulation model with Vector3d input
-void RaisimSimulator::setSimAngle(Eigen::Vector3d angs)
+void RaisimSimulator::setSimAngle(Eigen::VectorXd angs)
 {
     // Send joint angles to simulation model
     hexapodLegModel->setGeneralizedCoordinate(angs);
