@@ -67,7 +67,7 @@ Eigen::MatrixXd HexapodLeg::getJacobian() const
 }
 
 // Perform inverse kinematics to get desired control engles
-Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z) const
+Eigen::Vector3d HexapodLeg::doLegIK(float x, float y, float z) const
 {
 
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
@@ -97,6 +97,42 @@ Eigen::Vector3d HexapodLeg::doIK(float x, float y, float z) const
 
     return angs;
 }
+
+// Perform inverse kinematics to get desired control engles
+Eigen::Vector3d HexapodLeg::doBodyIK(float x, float y, float z) const
+{
+
+    // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
+
+    float dx = x/1000 * cos(-bodyLegAngles[1]) - y/1000 * sin(-bodyLegAngles[1]) - bodyLegOffsets[1];
+    float dy = x/1000 * sin(-bodyLegAngles[1]) + y/1000 * cos(-bodyLegAngles[1]);
+
+    // float dx = x/1000;
+    // float dy = y/1000;
+    float dz = z/1000 - coxaZ;
+
+    // cout<<endl<<dx<<","<<dy<<","<<dz<<endl;
+
+    float H = sqrt(pow(dx, 2) + pow(dy, 2)) - coxaX;
+    float L = sqrt(pow(H, 2) + pow(dz, 2));
+
+    // cout<<endl<<H<<","<<L<<","<<endl;
+
+    float omega = atan2(dz, H);
+    float beta = acos(Utils::constrain((pow(femurX, 2) + pow(L, 2) - pow(tibiaX, 2)) / (2 * femurX * L), -1, 1));
+    float phi = acos(Utils::constrain((pow(femurX, 2) + pow(tibiaX, 2) - pow(L, 2)) / (2 * femurX * tibiaX), -1, 1));
+
+    // cout<<endl<<omega<<","<<beta<<","<<phi<<","<<endl;
+
+    float th1 = atan2(dy, dx);
+    float th2 = beta + omega;
+    float th3 = M_PI + phi;
+
+    Eigen::Vector3d angs = {th1, th2, th3};
+
+    return angs;
+}
+
 
 // Perform forward kinematics of the hexapod leg to get end affector position
 Eigen::Vector3d HexapodLeg::doFK() const
@@ -318,7 +354,96 @@ void HexapodLeg::doJacobianTest(const int &style)
 }
 
 // Test the IK position control in X Y Z axis individually
-void HexapodLeg::doIKTest()
+void HexapodLeg::doLegIKTest()
+{
+    // Set Start Position
+    Eigen::Vector3d posik = {220, 0, -170};
+    moveToPos(posik);
+
+    // Set interpolation scale
+    int scale = 160;
+
+    sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
+
+    // Test X movement
+    for (int i = 1; i <= scale; i++)
+    {
+        posik[0] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale * 2; i++)
+    {
+        posik[0] -= 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale; i++)
+    {
+        posik[0] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
+
+    // Test Y movement
+    for (int i = 1; i <= scale * 2; i++)
+    {
+        posik[1] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale * 4; i++)
+    {
+        posik[1] -= 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale * 2; i++)
+    {
+        posik[1] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
+
+    // Test Z Movement
+    for (int i = 1; i <= scale; i++)
+    {
+        posik[2] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale * 2; i++)
+    {
+        posik[2] -= 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    for (int i = 1; i <= scale; i++)
+    {
+        posik[2] += 0.5;
+        moveToPos(posik);
+        rsLoop.realTimeDelay();
+        ;
+    }
+    sleep_for(chrono::milliseconds(2000));
+    rsLoop.updateTimeDelay();
+}
+
+// Test the IK position control in X Y Z axis individually
+void HexapodLeg::doBodyIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
@@ -488,7 +613,7 @@ void HexapodLeg::sendPos(float x, float y, float z)
     // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
 
     // Get Angles for set position
-    Eigen::Vector3d angs = doIK(x, y, z);
+    Eigen::Vector3d angs = doBodyIK(x, y, z);
 
     cout << endl
          << angs << endl;

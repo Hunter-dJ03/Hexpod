@@ -18,7 +18,8 @@ public:
     ~HexapodLeg();
 
     Eigen::MatrixXd getJacobian() const;
-    Eigen::Vector3d doIK(float x, float y, float z) const;
+    Eigen::Vector3d doLegIK(float x, float y, float z) const;
+    Eigen::Vector3d doBodyIK(float x, float y, float z) const;
     Eigen::Vector3d doFK() const;
 
     void setAngs(float coxa, float femur, float tibia);
@@ -31,7 +32,8 @@ public:
     void moveToOff();
 
     void doJacobianTest(const int &style);
-    void doIKTest();
+    void doLegIKTest();
+    void doBodyIKTest();
 
     int id;
     Eigen::Vector3d pos;
