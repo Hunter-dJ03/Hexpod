@@ -79,7 +79,7 @@ void parseCommand(const string& command, HexapodLeg &leg) {
     } else if (command == "off") {
         leg.moveToOff();
     } else if (command == "ikTest") {
-        leg.doIKTest();
+        leg.doBodyIKTest();
     } else if (command == "jacTest") {
         leg.doJacobianTest(1);
     } else {
