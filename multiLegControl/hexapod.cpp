@@ -189,7 +189,7 @@ void Hexapod::doJacobianTest(const int &style)
 {
 
     // Test Control Variables
-    float radius = 0.05; // meters
+    float radius = 0.04; // meters
     double period = 5;   // HZ
     double cycles = 3;
 
@@ -205,7 +205,7 @@ void Hexapod::doJacobianTest(const int &style)
 
     // Create vector variables for control calculations
     Eigen::Vector3d desiredSpatialVelocity;
-    Eigen::Vector3d calculatedSpatialVelocity;
+    Eigen::Vector3d legJointVelocity;
     Eigen::VectorXd desiredAngularVelocities(18);
     Eigen::VectorXd nextAngles(18);
     // Eigen::Vector3d nextPos;
@@ -233,17 +233,17 @@ void Hexapod::doJacobianTest(const int &style)
     {
         // desiredSpatialVelocity << 0,0,0;
         // Desired spatial velocity of XYZ
-        // desiredSpatialVelocity << 0,
-        //     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
-        //     -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+        desiredSpatialVelocity << 0,
+            radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+            -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
 
-        for (int legNum = 0; legNum < 6; ++legNum) {
+        for (int legNum = 0; legNum < 6; legNum++) {
             jacobian = getJacobian(legNum);
             jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
-            calculatedSpatialVelocity = jacobianPseudoInverse * desiredSpatialVelocity;
+            legJointVelocity = jacobianPseudoInverse * desiredSpatialVelocity*(legStatus[legNum]*2-1);
 
-            for (int joint = 0; joint < 3; ++joint) {
-                nextAngles[legNum*3+joint] = calculatedSpatialVelocity[joint]; // Repeat the set of 3 angles
+            for (int joint = 0; joint < 3; joint++) {
+                desiredAngularVelocities[legNum*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
             }
         }
         
@@ -276,8 +276,8 @@ void Hexapod::doJacobianTest(const int &style)
             // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
             // cout << "Jacobian" << endl<<jacobian<<endl;
             // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
-            // cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
-            cout << "Next Angles" << endl << nextAngles <<endl;
+            cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
+            // cout << "Next Angles" << endl << nextAngles <<endl;
             // cout << "Next Pos" << endl << nextPos <<endl;
         }
 
