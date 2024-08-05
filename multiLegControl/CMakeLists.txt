@@ -15,7 +15,8 @@ include_directories(
     ${EIGEN3_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
-    "/home/hunter/raisim_ws/repos/matplotlib-cpp"
+    "/home/hunter/Documents/github/importedRepos/matplotlib-cpp"
+    # "/home/hunter/raisim_ws/repos/matplotlib-cpp"
 )
 
 # Add executables
