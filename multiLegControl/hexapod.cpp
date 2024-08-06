@@ -189,9 +189,9 @@ void Hexapod::doJacobianTest(const int &style)
 {
 
     // Test Control Variables
-    float radius = 0.04; // meters
-    double period = 5;   // HZ
-    double cycles = 3;
+    float radius = 0.07; // meters
+    double period = 2;   // HZ
+    double cycles = 8;
 
     // Find Duration
     int dur = period * cycles * 1000; // ms
@@ -213,7 +213,7 @@ void Hexapod::doJacobianTest(const int &style)
     Eigen::MatrixXd jacobianPseudoInverse;
 
     // Set Start Position
-    float offAngles[3] = {0, 134.072 / 2 * M_PI / 180, (360 - 143 / 2) * M_PI / 180};
+    float offAngles[3] = {0, 50 * M_PI / 180, 270 * M_PI / 180};
     for (int i = 0; i < 18; ++i) {
         nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }

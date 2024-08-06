@@ -26,6 +26,11 @@
     /usr/include/eigen3/**
     ```
 8. Update matplotlip-cpp directory full path in CMakeLists.txt to cloned location
-7. Make build folder
-8. Compile Cmake: `cmake .. -DCMAKE_PREFIX_PATH={Cloned Raisim Repo Full Path}/raisim/linux`
-9. Compile
+9. Make build folder
+10. Prep Cmake: `cmake .. -DCMAKE_PREFIX_PATH={Cloned Raisim Repo Full Path}/raisim/linux`
+11. Compile `cmake`
+
+### Using RaisimUnity
+
+1. Follow instruction on the linked page (https://raisim.com/sections/RaisimUnity.html)
+2. Also add the symlink if using ubuntu 22.04: `sudo ln -s /usr/lib/x86_64-linux-gnu/libdl.so.2 /usr/lib/x86_64-linux-gnu/libdl.so`
