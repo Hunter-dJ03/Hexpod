@@ -135,7 +135,7 @@ Eigen::Vector3d HexapodLeg::doBodyIK(float x, float y, float z) const
 
 
 // Perform forward kinematics of the hexapod leg to get end affector position
-Eigen::Vector3d HexapodLeg::doFK() const
+Eigen::Vector3d HexapodLeg::updatePos() const
 {
     // Eigen::Vector3d pos(
     //     cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
@@ -226,7 +226,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        nextPos = doFK();
+        nextPos = updatePos();
 
         // Set cycle variables for plotting
         t[i] = i * rsStep;

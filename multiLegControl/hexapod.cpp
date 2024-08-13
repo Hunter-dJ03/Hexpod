@@ -27,6 +27,7 @@ Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RS
     }
 
     currentAngles = Eigen::VectorXd(18);
+    pos = Eigen::VectorXd(18);
 }
 
 Hexapod::~Hexapod()
@@ -72,7 +73,7 @@ Eigen::MatrixXd Hexapod::getJacobian(int legNum) const
 Eigen::Vector3d Hexapod::doLegIK(float x, float y, float z) const
 {
 
-    // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
+    // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;fmt
 
     float dx = x/1000;
     float dy = y/1000;
@@ -136,21 +137,23 @@ Eigen::Vector3d Hexapod::doBodyIK(float x, float y, float z) const
 }
 
 
-// Perform forward kinematics of the hexapod leg to get end affector position
-Eigen::Vector3d Hexapod::doFK() const
+// Perform forward kinematics of the hexapod leg to get end affector positions
+void Hexapod::updatePos()
 {
-    // Eigen::Vector3d pos(
-    //     cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
-    //     sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
-    //     0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]) + 0.01065);
+    for (int legNum = 0; legNum < 6; legNum++) {
+    
+        pos(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
+        pos(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2])*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
+        pos(legNum*3+2) = coxaZ + tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]);
+    }
+}
 
-    Eigen::Vector3d pos(
-
-        coxaX*cos(bodyLegAngles[1] + currentAngles[0]) + bodyLegAngles[1]*cos(bodyLegAngles[1]) + tibiaX*cos(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1] + currentAngles[2]) + femurX*cos(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1]),
-        coxaX*sin(bodyLegAngles[1] + currentAngles[0]) + bodyLegAngles[1]*sin(bodyLegAngles[1]) + tibiaX*cos(currentAngles[1] + currentAngles[2])*sin(bodyLegAngles[1] + currentAngles[0]) + femurX*sin(bodyLegAngles[1] + currentAngles[0])*cos(currentAngles[1]),
-        coxaZ + tibiaX*sin(currentAngles[1] + currentAngles[2]) + femurX*sin(currentAngles[1]));
-
-    return pos;
+// Print End Affector Positions
+void Hexapod::printPos() const
+{
+    for (int legNum = 0; legNum < 6; legNum++) {
+        cout << "Leg " << legNum+1 << " Position:  (" << pos(legNum*3) << ", " << pos(legNum*3+1) << ", " << pos(legNum*3+2) << ")" << endl;
+    }
 }
 
 // Move to straight leg position
@@ -191,13 +194,11 @@ void Hexapod::walkInit()
     Eigen::VectorXd nextAngles(18);
 
     // Set Start Position
-    float offAngles[3] = {0, 50 * M_PI / 180, 270 * M_PI / 180};
+    float offAngles[3] = {0, 35 * M_PI / 180, 265 * M_PI / 180};
     for (int i = 0; i < 18; ++i) {
         nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }
     setAngs(nextAngles);
-
-    
 }
 
 void Hexapod::doJacobianTest(const int &style)
@@ -228,11 +229,11 @@ void Hexapod::doJacobianTest(const int &style)
     Eigen::MatrixXd jacobianPseudoInverse;
 
     // Set Start Position
-    float offAngles[3] = {0, 50 * M_PI / 180, 270 * M_PI / 180};
-    for (int i = 0; i < 18; ++i) {
-        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
-    }
-    setAngs(nextAngles);
+    // float offAngles[3] = {0, 50 * M_PI / 180, 270 * M_PI / 180};
+    // for (int i = 0; i < 18; ++i) {
+    //     nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    // }
+    // setAngs(nextAngles);
 
     // Slight delay for servo motors to get to starting angle
     if (arduinoConnected)
@@ -252,8 +253,8 @@ void Hexapod::doJacobianTest(const int &style)
         for (int legNum = 0; legNum < 6; legNum++) {
 
             desiredSpatialVelocity << 0,
-                radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)) * (2*legStatus[legNum]-1),
-                -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+                radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
 
             jacobian = getJacobian(legNum);
             jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
@@ -270,7 +271,7 @@ void Hexapod::doJacobianTest(const int &style)
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        // nextPos = doFK();
+        // nextPos = updatePos();
 
         // Set cycle variables for plotting
         // t[i] = i * rsStep;
@@ -306,7 +307,6 @@ void Hexapod::doJacobianTest(const int &style)
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
-        
         // Integrate the Simulator server 
         // simulator->server->integrateWorldThreadSafe();
     }
@@ -589,12 +589,15 @@ void Hexapod::setAngs(const Eigen::VectorXd &angs)
 {
     currentAngles = angs;
     sendAngs();
+
+    updatePos();
 }
 // Send the angles of the servo motors to the arduino
 void Hexapod::sendAngs()
 {
 
     Eigen::VectorXd modifiedAngs = currentAngles;
+
 
     // Subtract the values at the specified indices from 180
     modifiedAngs(10) = - modifiedAngs(10);

@@ -82,7 +82,12 @@ void parseCommand(const string& command, Hexapod &hexapod) {
         hexapod.doBodyIKTest();
     } else if (command == "jacTest") {
         hexapod.doJacobianTest(1);
-    } else {
+    } else if (command == "walkInit") {
+        hexapod.walkInit();
+    } else if (command == "printPos") {
+        hexapod.printPos();
+    }
+    else {
         cout << "Unknown command: " << command << endl;
     }
 }

@@ -20,7 +20,7 @@ public:
     Eigen::MatrixXd getJacobian() const;
     Eigen::Vector3d doLegIK(float x, float y, float z) const;
     Eigen::Vector3d doBodyIK(float x, float y, float z) const;
-    Eigen::Vector3d doFK() const;
+    Eigen::Vector3d updatePos() const;
 
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);

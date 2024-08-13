@@ -20,7 +20,8 @@ public:
     Eigen::MatrixXd getJacobian(int legNum) const;
     Eigen::Vector3d doLegIK(float x, float y, float z) const;
     Eigen::Vector3d doBodyIK(float x, float y, float z) const;
-    Eigen::Vector3d doFK() const;
+    void updatePos();
+    void printPos() const;
 
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::VectorXd& angs);
@@ -38,7 +39,7 @@ public:
     void doBodyIKTest();
 
     int id;
-    Eigen::Vector3d pos;
+    Eigen::VectorXd pos;
     Eigen::VectorXd currentAngles;
     Eigen::Vector3d currentAngularVelocities;
 
