@@ -26,7 +26,7 @@ Servo tibia3;
 //Servo tibia6;
 
 void initLegs() {
-// Attach Servos  
+  // Attach Servos
   coxa1.attach(29);
   femur1.attach(31);
   tibia1.attach(33);
@@ -39,17 +39,17 @@ void initLegs() {
   femur3.attach(24);
   tibia3.attach(26);
 
-//  coxa4.attach();
-//  femur4.attach();
-//  tibia4.attach();
-//
-//  coxa5.attach();
-//  femur5.attach();
-//  tibia5.attach();
-//
-//  coxa6.attach();
-//  femur6.attach();
-//  tibia6.attach();
+  //  coxa4.attach();
+  //  femur4.attach();
+  //  tibia4.attach();
+  //
+  //  coxa5.attach();
+  //  femur5.attach();
+  //  tibia5.attach();
+  //
+  //  coxa6.attach();
+  //  femur6.attach();
+  //  tibia6.attach();
 };
 
 void setAngs(float decodedFloats[18]) {
@@ -67,69 +67,69 @@ void setAngs(float decodedFloats[18]) {
 }
 
 void decodeBytes(const uint8_t* bytes, float* floats, int numValues) {
-    bool bitBuffer[TOTAL_BITS] = {0};
+  bool bitBuffer[TOTAL_BITS] = { 0 };
 
-    for (int i = 0; i < TOTAL_BITS; ++i) {
-        bitBuffer[i] = (bytes[i / 8] & (1 << (i % 8))) != 0;
-    }
+  for (int i = 0; i < TOTAL_BITS; ++i) {
+    bitBuffer[i] = (bytes[i / 8] & (1 << (i % 8))) != 0;
+  }
 
-    for (int i = 0; i < numValues; ++i) {
-        uint16_t value = 0;
-        for (int j = 0; j < 11; ++j) {
-            if (bitBuffer[i * 11 + j]) {
-                value |= (1 << j);
-            }
-        }
-        floats[i] = static_cast<float>(value)/10;
+  for (int i = 0; i < numValues; ++i) {
+    uint16_t value = 0;
+    for (int j = 0; j < 11; ++j) {
+      if (bitBuffer[i * 11 + j]) {
+        value |= (1 << j);
+      }
     }
+    floats[i] = static_cast<float>(value) / 10;
+  }
 }
 
 int deg2ms(double angle) {
-    double min = 500.0;
-    double max = 2500.0;
-    double ms = min + (((max-min)/180)*angle);
-    return (int)ms;
+  double min = 500.0;
+  double max = 2500.0;
+  double ms = min + (((max - min) / 180) * angle);
+  return (int)ms;
 }
 
 void setup() {
-    Serial.begin(921600);
-    while (!Serial) {
-        ; // Wait for serial port to connect. Needed for native USB
-    }
-//    Serial.println("Send the encoded data...");
+  Serial.begin(921600);
+  while (!Serial) {
+    ;  // Wait for serial port to connect. Needed for native USB
+  }
+  //    Serial.println("Send the encoded data...");
 
-    initLegs();
+  initLegs();
 
-//    setAngs(90,90,90);/
+  //    setAngs(90,90,90);/
 
-    delay(800);
+  delay(800);
 }
 
 void loop() {
-    static uint8_t encodedData[TOTAL_BYTES];
-    static int bytesRead = 0;
-    static bool dataReceived = false;
+  static uint8_t encodedData[TOTAL_BYTES];
+  static int bytesRead = 0;
+  static bool dataReceived = false;
 
-    if (Serial.available() > 0) {
-        encodedData[bytesRead] = Serial.read();
-        bytesRead++;
-        if (bytesRead >= TOTAL_BYTES) {
-            dataReceived = true;
-            bytesRead = 0; // Reset for next reading
-        }
+  if (Serial.available() > 0) {
+    encodedData[bytesRead] = Serial.read();
+    bytesRead++;
+    if (bytesRead >= TOTAL_BYTES) {
+      dataReceived = true;
+      bytesRead = 0;  // Reset for next reading
     }
+  }
 
-    if (dataReceived) {
-        float decodedFloats[NUM_VALUES];
-        decodeBytes(encodedData, decodedFloats, NUM_VALUES);
+  if (dataReceived) {
+    float decodedFloats[NUM_VALUES];
+    decodeBytes(encodedData, decodedFloats, NUM_VALUES);
 
-//        Serial.println("Decoded values:");
-//        for (int i = 0; i < NUM_VALUES; ++i) {
-//            Serial.println(decodedFloats[i]);
-//        }
+    //        Serial.println("Decoded values:");
+    //        for (int i = 0; i < NUM_VALUES; ++i) {
+    //            Serial.println(decodedFloats[i]);
+    //        }
 
-        setAngs(decodedFloats);
-        
-        dataReceived = false; // Reset for next batch of data
-    }
+    setAngs(decodedFloats);
+
+    dataReceived = false;  // Reset for next batch of data
+  }
 }
