@@ -31,6 +31,8 @@ public:
     void moveToBasic();
     void moveToOff();
 
+    void walkInit();
+
     void doJacobianTest(const int &style);
     void doLegIKTest();
     void doBodyIKTest();
@@ -67,7 +69,8 @@ private:
 
     const vector<int> angleInits = {96, 94, 17};
 
-    const vector<float> bodyLegOffsets = {0.150, 0.125, 0.150, 0.150, 0.125, 0.150};
+    const vector<float> bodyLegOffsets = {0.180, 0.130, 0.180, 0.180, 0.130, 0.180};
+    const vector<float> femurRotation= {M_PI_2, M_PI_2, M_PI_2, -M_PI_2, -M_PI_2, -M_PI_2};
     const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
 
     const vector<bool> legStatus = {0,1,0,1,0,1};

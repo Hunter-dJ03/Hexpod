@@ -1,0 +1,733 @@
+<robot name="onshape">
+    <link name="world"/>
+
+    <joint name="fixed" type="fixed">
+        <parent link="world"/>
+        <child link="bodyv2"/>
+    </joint>
+    
+    <link name="bodyv2">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="../meshes/bodyv2.obj" />
+            </geometry>
+            <material name="bodyv2_material">
+                <color
+                    rgba="0.64705882352941179736 0.64705882352941179736 0.64705882352941179736 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 -0 0" />
+            <geometry>
+                <mesh filename="../meshes/bodyv2.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin
+                xyz="-0.00016156646610776740475 0.0020690551697271739214 0.018635279603876668542"
+                rpy="0 0 0" />
+            <mass value="1.2037374722047951003" />
+            <inertia ixx="0.010656763365604652108" ixy="1.1009035481021636852e-06"
+                ixz="2.5007077941524283917e-06" iyy="0.0071653095044550453585"
+                iyz="2.6102685037083680727e-05" izz="0.017431156217660281893" />
+        </inertial>
+    </link>
+
+    <link name="coxav2-cp_r">
+        <visual>
+            <origin xyz="0.044924999999999687406 3.3841416545784007838e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 7.478872514840289116e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999687406 3.3841416545784007838e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 7.478872514840289116e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.030948537665903694954 0.001527935794023316295 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053861237" ixy="-2.8149218857934174739e-06"
+                ixz="8.9250422057662376411e-06" iyy="0.00016056370772947681702"
+                iyz="1.7135142590251640123e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r">
+        <visual>
+            <origin xyz="0.11831370849898595332 -1.3877787807814456755e-17 0.025050000000000006289"
+                rpy="-1.570796326794896336 2.3154521450840299509e-16 -1.8792258622622753027e-32" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898595332 -1.3877787807814456755e-17 0.025050000000000006289"
+                rpy="-1.570796326794896336 2.3154521450840299509e-16 -1.8792258622622753027e-32" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.06082506750932465539 -1.5136200038835960093e-09 0.026970838378384605349"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801968685" ixy="-3.2244334122795040023e-06"
+                ixz="5.1376080092875156877e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797389190611422e-13" izz="0.00023604451059041267461" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r">
+        <visual>
+            <origin xyz="0.22117075446837414221 0.00010480390885179644012 0.025250000000001146527"
+                rpy="-1.5707963267948961139 2.0881301362003362234e-16 -2.4651903288156624393e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837414221 0.00010480390885179644012 0.025250000000001146527"
+                rpy="-1.5707963267948961139 2.0881301362003362234e-16 -2.4651903288156624393e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876672497 0.012229493286894628848 0.024032647470113480126"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.244932437467696476e-05" ixy="-5.8064365362945943969e-05"
+                ixz="-1.625147238816887927e-05" iyy="0.00086246462711135163208"
+                iyz="-2.3947943719185559256e-06" izz="0.00087270111324797569954" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia1" type="revolute">
+        <origin xyz="0.1183137084989848431 -1.9081958235744878039e-17 -4.1633363423443370266e-17"
+            rpy="-1.6953482199534145611e-17 7.4923617708775792653e-17 5.551115123541516097e-17" />
+        <parent link="femurv2-cp_r" />
+        <child link="tibiav2-cp_r" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur1" type="revolute">
+        <origin xyz="0.044924999999999853939 0.025050000000000370581 0.015349999999999990388"
+            rpy="1.570796326794896336 4.1572979018096710656e-27 1.3525580482673391912e-16" />
+        <parent link="coxav2-cp_r" />
+        <child link="femurv2-cp_r" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa1" type="revolute">
+        <origin xyz="0.098035026302704594836 0.15096070223017660217 -0.0045000000000000005274"
+            rpy="0 -2.4651903296048737344e-32 0.99483767363676756101" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="coxav2-cp_r_2">
+        <visual>
+            <origin xyz="0.044924999999999715161 3.2028130148349362021e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 7.9187868350077541959e-59" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999715161 3.2028130148349362021e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 7.9187868350077541959e-59" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.03094853766590372271 0.0015279357940232993814 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053861237" ixy="-2.8149218857934327205e-06"
+                ixz="8.9250422057662376411e-06" iyy="0.00016056370772947687123"
+                iyz="1.7135142590251635887e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r_2">
+        <visual>
+            <origin xyz="0.11831370849898600883 -1.3877787807814456755e-17 0.025049999999999964656"
+                rpy="-1.570796326794896336 2.8723936427800499152e-16 0" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898600883 -1.3877787807814456755e-17 0.025049999999999964656"
+                rpy="-1.570796326794896336 2.8723936427800499152e-16 0" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060825067509324703963 -1.5136200038835960093e-09 0.026970838378384567185"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801974106" ixy="-3.2244334122795044258e-06"
+                ixz="5.1376080092876427427e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797371232406222e-13" izz="0.00023604451059041272882" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r_2">
+        <visual>
+            <origin xyz="0.22117075446837425323 0.00010480390885179644012 0.025250000000001143058"
+                rpy="-1.5707963267948961139 2.3241406019702804199e-16 0" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837425323 0.00010480390885179644012 0.025250000000001143058"
+                rpy="-1.5707963267948961139 2.3241406019702804199e-16 0" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876755764 0.012229493286894628848 0.024032647470113480126"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.2449324374676991865e-05" ixy="-5.8064365362945950745e-05"
+                ixz="-1.6251472388168842001e-05" iyy="0.00086246462711135163208"
+                iyz="-2.394794371918554655e-06" izz="0.00087270111324797591638" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia2" type="revolute">
+        <origin xyz="0.11831370849898506514 0 0" rpy="0 5.8915479855140975462e-52 0" />
+        <parent link="femurv2-cp_r_2" />
+        <child link="tibiav2-cp_r_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur2" type="revolute">
+        <origin xyz="0.044924999999999687406 0.025050000000000322009 0.015349999999999990388"
+            rpy="1.570796326794896336 4.1572969705147401066e-27 1.1832913578315177081e-30" />
+        <parent link="coxav2-cp_r_2" />
+        <child link="femurv2-cp_r_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa2" type="revolute">
+        <origin xyz="0.13000000000000000444 2.088607032214904854e-19 -0.0039000000000000006883"
+            rpy="0 -0 -7.9187868350077541959e-59" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r_2" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="coxav2-cp_r_3">
+        <visual>
+            <origin xyz="0.044924999999999742917 3.257639905383399944e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 8.040461820721662843e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999742917 3.257639905383399944e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 8.040461820721662843e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.030948537665903746996 0.0015279357940233037182 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053861237" ixy="-2.8149218857934424614e-06"
+                ixz="8.9250422057662376411e-06" iyy="0.00016056370772947687123"
+                iyz="1.713514259025164224e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r_3">
+        <visual>
+            <origin xyz="0.11831370849898603659 -1.3877787807814456755e-17 0.025049999999999978534"
+                rpy="-1.570796326794896336 2.8440316557020761339e-16 -3.5727006843363076696e-33" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898603659 -1.3877787807814456755e-17 0.025049999999999978534"
+                rpy="-1.570796326794896336 2.8440316557020761339e-16 -3.5727006843363076696e-33" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060825067509324724779 -1.5136200038835960093e-09 0.026970838378384581063"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801979527" ixy="-3.2244334122795052729e-06"
+                ixz="5.1376080092876395663e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797372146919417e-13" izz="0.00023604451059041272882" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r_3">
+        <visual>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.025250000000001153466"
+                rpy="-1.5707963267948961139 2.6140117956109480423e-16 -5.2039607354307863881e-33" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.025250000000001153466"
+                rpy="-1.5707963267948961139 2.6140117956109480423e-16 -5.2039607354307863881e-33" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876811275 0.012229493286894628848 0.024032647470113494004"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.2449324374676991865e-05" ixy="-5.8064365362945950745e-05"
+                ixz="-1.6251472388168743745e-05" iyy="0.00086246462711135163208"
+                iyz="-2.3947943719185529609e-06" izz="0.00087270111324797569954" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia3" type="revolute">
+        <origin xyz="0.11831370849898475983 1.7347234759768070944e-18 1.3877787807814456755e-17"
+            rpy="-3.4512664603419244591e-31 8.8134141193996676966e-17 3.2186500697891184772e-32" />
+        <parent link="femurv2-cp_r_3" />
+        <child link="tibiav2-cp_r_3" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur3" type="revolute">
+        <origin xyz="0.044924999999999604139 0.025050000000000294254 0.015349999999999992123"
+            rpy="1.570796326794896336 4.1572979018096681958e-27 5.5624975971851880972e-17" />
+        <parent link="coxav2-cp_r_3" />
+        <child link="femurv2-cp_r_3" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa3" type="revolute">
+        <origin xyz="0.09803502630270488627 -0.1509607022301762691 -0.0044999999999999987926"
+            rpy="-1.9721522630525295135e-31 -7.8921129510773646455e-42 -0.99483767363676967044" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r_3" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="coxav2-cp_r_4">
+        <visual>
+            <origin xyz="0.044924999999999715161 3.1340828537214277704e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147393892e-27 -3.4455921087862001714e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999715161 3.1340828537214277704e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147393892e-27 -3.4455921087862001714e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.030948537665903715771 0.0015279357940232928762 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053866658" ixy="-2.8149218857934496612e-06"
+                ixz="8.9250422057662393352e-06" iyy="0.00016056370772947687123"
+                iyz="1.713514259025163377e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r_4">
+        <visual>
+            <origin xyz="0.11831370849898603659 -1.3877787807814456755e-17 0.025049999999999978534"
+                rpy="-1.570796326794896336 1.7781171950339594773e-16 -5.676869029844861865e-33" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898603659 -1.3877787807814456755e-17 0.025049999999999978534"
+                rpy="-1.570796326794896336 1.7781171950339594773e-16 -5.676869029844861865e-33" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060825067509324731718 -1.5136200038835960093e-09 0.026970838378384574124"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801974106" ixy="-3.2244334122795044258e-06"
+                ixz="5.1376080092872584015e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797406516617181e-13" izz="0.0002360445105904126204" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r_4">
+        <visual>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.025250000000001163875"
+                rpy="-1.5707963267948961139 1.8772357639754237426e-16 3.5825708040134975684e-33" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837430874 0.00010480390885179644012 0.025250000000001163875"
+                rpy="-1.5707963267948961139 1.8772357639754237426e-16 3.5825708040134975684e-33" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876811275 0.012229493286894628848 0.024032647470113494004"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.2449324374676991865e-05" ixy="-5.8064365362945950745e-05"
+                ixz="-1.6251472388168794567e-05" iyy="0.00086246462711135163208"
+                iyz="-2.3947943719185571961e-06" izz="0.00087270111324797591638" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia4" type="revolute">
+        <origin xyz="0.11831370849898492636 3.4694469519536141888e-18 -1.7347234759768070944e-17"
+            rpy="-9.8607613152626453781e-32 -9.4788108205819949456e-17 -3.6170317235369681953e-32" />
+        <parent link="femurv2-cp_r_4" />
+        <child link="tibiav2-cp_r_4" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur4" type="revolute">
+        <origin xyz="0.044924999999999576383 0.025050000000000349765 0.015349999999999990388"
+            rpy="1.570796326794896336 4.1572979018096703482e-27 -2.9499992640788763795e-17" />
+        <parent link="coxav2-cp_r_4" />
+        <child link="femurv2-cp_r_4" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa4" type="revolute">
+        <origin xyz="-0.098035026302703554002 -0.15096070223017760137 -0.0044999999999999970579"
+            rpy="-9.8607613152626475676e-32 -1.2325951651970416937e-32 -2.1467549799530263321" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r_4" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="coxav2-cp_r_5">
+        <visual>
+            <origin xyz="0.044924999999999687406 3.2028130148349386673e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 1.4717431026070963077e-58" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999687406 3.2028130148349386673e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 1.4717431026070963077e-58" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.030948537665903694954 0.0015279357940232993814 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053861237" ixy="-2.8149218857934327205e-06"
+                ixz="8.9250422057662376411e-06" iyy="0.00016056370772947687123"
+                iyz="1.7135142590251635887e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r_5">
+        <visual>
+            <origin xyz="0.11831370849898600883 -1.3877787807814456755e-17 0.025049999999999968125"
+                rpy="-1.570796326794896336 2.8723936427800499152e-16 3.0615539046683486639e-43" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898600883 -1.3877787807814456755e-17 0.025049999999999968125"
+                rpy="-1.570796326794896336 2.8723936427800499152e-16 3.0615539046683486639e-43" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060825067509324703963 -1.5136200038835960093e-09 0.026970838378384570655"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801974106" ixy="-3.2244334122795044258e-06"
+                ixz="5.1376080092876427427e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797371232406222e-13" izz="0.00023604451059041272882" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r_5">
+        <visual>
+            <origin xyz="0.22117075446837425323 0.00010480390885179644012 0.025250000000001143058"
+                rpy="-1.5707963267948961139 2.3241406019702804199e-16 1.0050878812166666039e-43" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837425323 0.00010480390885179644012 0.025250000000001143058"
+                rpy="-1.5707963267948961139 2.3241406019702804199e-16 1.0050878812166666039e-43" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876755764 0.012229493286894628848 0.024032647470113480126"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.2449324374676991865e-05" ixy="-5.8064365362945950745e-05"
+                ixz="-1.6251472388168842001e-05" iyy="0.00086246462711135163208"
+                iyz="-2.394794371918554655e-06" izz="0.00087270111324797591638" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia5" type="revolute">
+        <origin xyz="0.11831370849898489861 0 -3.4694469519536141888e-18"
+            rpy="-2.9582283955228070068e-31 -5.2141178364095203487e-33 1.0236485281892729759e-42" />
+        <parent link="femurv2-cp_r_5" />
+        <child link="tibiav2-cp_r_5" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur5" type="revolute">
+        <origin xyz="0.04492499999999965965 0.025050000000000346295 0.015349999999999988654"
+            rpy="1.570796326794896336 4.1572969705147393892e-27 1.1746905860729758136e-30" />
+        <parent link="coxav2-cp_r_5" />
+        <child link="femurv2-cp_r_5" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa5" type="revolute">
+        <origin xyz="-0.13000000000000000444 -1.6017923098988083939e-15 -0.0044999999999999970579"
+            rpy="-1.4791141975878270711e-31 2.358034990842586882e-42 3.141592653589793116" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r_5" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <link name="coxav2-cp_r_6">
+        <visual>
+            <origin xyz="0.044924999999999742917 3.0938989606003021786e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 -3.7323631479186964985e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+            <material name="coxav2-cp_r_material">
+                <color rgba="0.2313725490196078538 0.38039215686274507888 0.7058823529411765163 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.044924999999999742917 3.0938989606003021786e-16 0.015349999999999995592"
+                rpy="-2.220446050594320057e-16 4.1572969705147401066e-27 -3.7323631479186964985e-17" />
+            <geometry>
+                <mesh filename="../meshes/coxav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.030948537665903746996 0.0015279357940232891899 0.025335970472285005567"
+                rpy="0 0 0" />
+            <mass value="0.12884275130140354637" />
+            <inertia ixx="0.00011011455907053861237" ixy="-2.8149218857934259443e-06"
+                ixz="8.9250422057662376411e-06" iyy="0.00016056370772947687123"
+                iyz="1.7135142590251631652e-06" izz="9.2722387734666189617e-05" />
+        </inertial>
+    </link>
+
+    <link name="femurv2-cp_r_6">
+        <visual>
+            <origin xyz="0.11831370849898598108 -1.3877787807814456755e-17 0.025049999999999988942"
+                rpy="-1.570796326794896336 1.944979377796179421e-16 -2.314095238046138386e-32" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+            <material name="femurv2-cp_r_material">
+                <color
+                    rgba="0.97254901960784312376 0.52941176470588235947 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.11831370849898598108 -1.3877787807814456755e-17 0.025049999999999988942"
+                rpy="-1.570796326794896336 1.944979377796179421e-16 -2.314095238046138386e-32" />
+            <geometry>
+                <mesh filename="../meshes/femurv2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.060825067509324676207 -1.5136200038835960093e-09 0.026970838378384584533"
+                rpy="0 0 0" />
+            <mass value="0.12070110637352100824" />
+            <inertia ixx="0.00012336870256801974106" ixy="-3.2244334122795044258e-06"
+                ixz="5.1376080092876300372e-07" iyy="0.00032491531984020667612"
+                iyz="-2.1187797401136260165e-13" izz="0.00023604451059041272882" />
+        </inertial>
+    </link>
+
+    <link name="tibiav2-cp_r_6">
+        <visual>
+            <origin xyz="0.22117075446837419772 0.00010480390885179644012 0.025250000000001184691"
+                rpy="-1.5707963267948961139 2.3691895989590743899e-16 1.4406516865148013193e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+            <material name="tibiav2-cp_r_material">
+                <color
+                    rgba="0.98039215686274505668 0.71372549019607844922 0.0039215686274509803377 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0.22117075446837419772 0.00010480390885179644012 0.025250000000001184691"
+                rpy="-1.5707963267948961139 2.3691895989590743899e-16 1.4406516865148013193e-32" />
+            <geometry>
+                <mesh filename="../meshes/tibiav2-cp_r.obj" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.082592297380876700252 0.012229493286894628848 0.024032647470113521759"
+                rpy="0 0 0" />
+            <mass value="0.16860990559390123811" />
+            <inertia ixx="6.2449324374676991865e-05" ixy="-5.8064365362945950745e-05"
+                ixz="-1.6251472388168818284e-05" iyy="0.00086246462711135163208"
+                iyz="-2.3947943719185542315e-06" izz="0.00087270111324797569954" />
+        </inertial>
+    </link>
+
+    <joint name="FemurTibia6" type="revolute">
+        <origin xyz="0.11831370849898503739 3.4694469519536141888e-18 3.4694469519536141888e-17"
+            rpy="-1.4791141972893964783e-31 -1.0288153216496370095e-16 -3.4484683210078138074e-32" />
+        <parent link="femurv2-cp_r_6" />
+        <child link="tibiav2-cp_r_6" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="CoxaFemur6" type="revolute">
+        <origin xyz="0.044924999999999687406 0.025050000000000346295 0.015350000000000004266"
+            rpy="1.570796326794896336 4.1572979018096689132e-27 -5.2191416820406432223e-17" />
+        <parent link="coxav2-cp_r_6" />
+        <child link="femurv2-cp_r_6" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+    <joint name="BodyCoxa6" type="revolute">
+        <origin xyz="-0.098035026302704983414 0.1509607022301762691 -0.0044999999999999970579"
+            rpy="-9.8607613152626475676e-32 1.2325951636186191035e-32 2.146754979953025444" />
+        <parent link="bodyv2" />
+        <child link="coxav2-cp_r_6" />
+        <axis xyz="0 0 1" />
+        <limit effort="1" velocity="20" />
+        <joint_properties friction="0.0" />
+    </joint>
+
+
+</robot>

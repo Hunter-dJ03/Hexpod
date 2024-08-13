@@ -23,7 +23,7 @@ Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RS
 {
     if (raisimSimulator)
     {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapod.urdf");
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodV2b.urdf");
     }
 
     currentAngles = Eigen::VectorXd(18);
@@ -185,6 +185,21 @@ void Hexapod::moveToOff()
     setAngs(offAnglesVector);
 }
 
+// Move to initial position for walk cycle
+void Hexapod::walkInit()
+{
+    Eigen::VectorXd nextAngles(18);
+
+    // Set Start Position
+    float offAngles[3] = {0, 50 * M_PI / 180, 270 * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(nextAngles);
+
+    
+}
+
 void Hexapod::doJacobianTest(const int &style)
 {
 
@@ -237,7 +252,7 @@ void Hexapod::doJacobianTest(const int &style)
         for (int legNum = 0; legNum < 6; legNum++) {
 
             desiredSpatialVelocity << 0,
-                radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)) * (2*legStatus[legNum]-1),
                 -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
 
             jacobian = getJacobian(legNum);
@@ -578,12 +593,22 @@ void Hexapod::setAngs(const Eigen::VectorXd &angs)
 // Send the angles of the servo motors to the arduino
 void Hexapod::sendAngs()
 {
-    // cout << fmt::format("({}|{}/{})\n", currentAngles[0] * 180 / M_PI, currentAngles[1] * 180 / M_PI, -currentAngles[2] * 180 / M_PI + 360);
+
+    Eigen::VectorXd modifiedAngs = currentAngles;
+
+    // Subtract the values at the specified indices from 180
+    modifiedAngs(10) = - modifiedAngs(10);
+    modifiedAngs(11) = - modifiedAngs(11);
+    modifiedAngs(13) = - modifiedAngs(13);
+    modifiedAngs(14) = - modifiedAngs(14);
+    modifiedAngs(16) = - modifiedAngs(16);
+    modifiedAngs(17) = - modifiedAngs(17);
+
     if (arduinoConnected)
     {
-        std::vector<std::bitset<11>> angleBinaryRepresentation(currentAngles.size());
-        for (int i =0; i < currentAngles.size(); i++) {
-            double baseValue = currentAngles[i]* 180 / M_PI;
+        std::vector<std::bitset<11>> angleBinaryRepresentation(modifiedAngs.size());
+        for (int i =0; i < modifiedAngs.size(); i++) {
+            double baseValue = modifiedAngs[i]* 180 / M_PI;
             if ((i+1)%3==0) {
                 baseValue = -baseValue+360;
             }
@@ -618,11 +643,10 @@ void Hexapod::sendAngs()
         // cout<<endl;
 
         arduino->sendBitSetCommand(result);
-        // arduino->sendStringCommand(fmt::format("({}|{}/{})\r", Utils::roundToDecimalPlaces(currentAngles[0] * 180 / M_PI +coxaAngleInit, 1), Utils::roundToDecimalPlaces(currentAngles[1] * 180 / M_PI + femurAngleInit, 1), Utils::roundToDecimalPlaces(-currentAngles[2] * 180 / M_PI + 360 + tibiaAngleInit, 1)));
     }
 
     if (simulator) {
-        simulator->setSimAngle(currentAngles);
+        simulator->setSimAngle(modifiedAngs);
     }
 }
 
