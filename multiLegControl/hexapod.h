@@ -25,18 +25,21 @@ public:
 
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::VectorXd& angs);
-    void moveToPos(float x, float y, float z);
-    void moveToPos(const Eigen::Vector3d& pos);
+
+    void moveLegToPos(const Eigen::Vector3d& desiredPos, const int legNum);
+    void moveLegsToPos(const Eigen::VectorXd& desiredPos);
+
 
     void moveToZero();
     void moveToBasic();
     void moveToOff();
+    void moveToCurled();
 
-    void walkInit();
+    void stand();
 
     void doJacobianTest(const int &style);
-    void doLegIKTest();
-    void doBodyIKTest();
+    // void doLegIKTest();
+    // void doBodyIKTest();
 
     int id;
     Eigen::VectorXd pos;

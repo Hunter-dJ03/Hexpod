@@ -28,6 +28,8 @@ Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RS
 
     currentAngles = Eigen::VectorXd(18);
     pos = Eigen::VectorXd(18);
+
+    moveToCurled();
 }
 
 Hexapod::~Hexapod()
@@ -147,7 +149,6 @@ void Hexapod::updatePos()
         pos(legNum*3+2) = coxaZ + tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]);
     }
 }
-
 // Print End Affector Positions
 void Hexapod::printPos() const
 {
@@ -160,7 +161,7 @@ void Hexapod::printPos() const
 void Hexapod::moveToZero()
 {
     Eigen::VectorXd zeroAnglesVector(18);       
-    float zeroAngles[3] = {0, 0, 360 * M_PI / 180};
+    float zeroAngles[3] = {0, 1 * M_PI / 180, 359 * M_PI / 180};
     for (int i = 0; i < 18; ++i) {
         zeroAnglesVector[i] = zeroAngles[i % 3]; // Repeat the set of 3 angles
     }
@@ -187,18 +188,179 @@ void Hexapod::moveToOff()
     }
     setAngs(offAnglesVector);
 }
+// Move to curled position
+void Hexapod::moveToCurled()
+{
+    Eigen::VectorXd offAnglesVector(18);
+    float offAngles[3] = {0 * M_PI / 180, 135 * M_PI / 180, (360 - 158) * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(offAnglesVector);
+}
 
 // Move to initial position for walk cycle
-void Hexapod::walkInit()
+void Hexapod::stand()
 {
     Eigen::VectorXd nextAngles(18);
 
-    // Set Start Position
-    float offAngles[3] = {0, 35 * M_PI / 180, 265 * M_PI / 180};
-    for (int i = 0; i < 18; ++i) {
-        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    Eigen::VectorXd legstandPos(18);
+
+    double tempPos[18] = {
+        0.235586, 0.362771, 0,
+        0.382555, 0, 0,
+        0.235586, -0.362771, 0,
+        -0.235586, -0.362771, 0,
+        -0.382555, 0, 0,
+        -0.235586, 0.362771, 0
+    };
+
+    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos, 18);
+
+    moveLegsToPos(legstandPos);
+
+    // Update tempPos with new values
+    double tempPos2[18] = {
+        0.235586, 0.362771, -0.113248,
+        0.382555, 0, -0.113248,
+        0.235586, -0.362771, -0.113248,
+        -0.235586, -0.362771, -0.113248,
+        -0.382555, 0, -0.113248,
+        -0.235586, 0.362771, -0.113248
+    };
+
+    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos2, 18);
+
+    moveLegsToPos(legstandPos);
+}
+
+void Hexapod::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
+
+    Eigen::Vector3d desiredSpatialVelocity;
+    Eigen::Vector3d legJointVelocity;
+    Eigen::VectorXd desiredAngularVelocities(18);
+    Eigen::VectorXd nextAngles(18);
+    Eigen::MatrixXd jacobian;
+    Eigen::MatrixXd jacobianPseudoInverse;
+
+
+    Eigen::VectorXd posOffset(18);
+    posOffset = desiredPos - pos;
+
+    // int dis = posOffset.norm()*2000;
+
+    int dur = 1000;
+
+    // desiredSpatialVelocity = posOffset/(dur);
+    // desiredSpatialVelocity = posOffset/(dur/1000);
+    
+    // cout << 1 << endl;
+
+    // Test Control Variables
+    // float radius = 0.07; // meters
+    // double period = 2;   // HZ
+    // double cycles = 1;
+
+    // Find Duration
+    // int dur = period * cycles * 1000; // ms
+
+    // cout<<endl<< "Leg " << legNum <<endl;
+    // cout<< "currentPos: " << currentPos.transpose() <<endl;
+    // cout<< "desiredPos: " << desiredPos.transpose() <<endl;
+    // cout<< "posOffset: " << posOffset.transpose() <<endl;
+    // cout<< "distance: " << dis <<endl;
+    // cout<< "desiredSpatialVelocity: " << desiredSpatialVelocity.transpose() <<endl;
+    // cout<< "legJointVelocity: " << legJointVelocity.transpose() <<endl;
+
+
+    // Update time for real time loop
+    rsLoop.updateTimeDelay();
+
+    for (int i = 0; i <= dur / rsStep; i++) {
+
+        desiredAngularVelocities*=0;
+
+        for (int legNum = 0; legNum < 6; legNum++) {
+
+            desiredSpatialVelocity << posOffset(legNum*3), posOffset(legNum*3+1), posOffset(legNum*3+2);
+
+            jacobian = getJacobian(legNum);
+            jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
+            legJointVelocity = jacobianPseudoInverse * (desiredSpatialVelocity / (dur/1000));
+
+            for (int joint = 0; joint < 3; joint++) {
+                desiredAngularVelocities[legNum*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
+            }
+        }
+
+        nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
+
+        setAngs(nextAngles);
+        rsLoop.realTimeDelay();
     }
-    setAngs(nextAngles);
+    
+}
+
+
+void Hexapod::moveLegToPos(const Eigen::Vector3d& desiredPos, const int legNum) {
+
+    Eigen::Vector3d desiredSpatialVelocity;
+    Eigen::Vector3d legJointVelocity;
+    Eigen::VectorXd desiredAngularVelocities(18);
+    Eigen::VectorXd nextAngles(18);
+    // Eigen::Vector3d nextPos;
+    Eigen::MatrixXd jacobian;
+    Eigen::MatrixXd jacobianPseudoInverse;
+
+
+    Eigen::Vector3d currentPos = {pos((legNum-1)*3),pos((legNum-1)*3+1),pos((legNum-1)*3+2)};
+    Eigen::Vector3d posOffset = desiredPos - currentPos;
+
+    int dis = posOffset.norm()*2000;
+
+    int dur = 1000;
+
+    // desiredSpatialVelocity = posOffset/(dur);
+    desiredSpatialVelocity = posOffset/(dur/1000);
+    
+    // Test Control Variables
+    // float radius = 0.07; // meters
+    // double period = 2;   // HZ
+    // double cycles = 1;
+
+    // Find Duration
+    // int dur = period * cycles * 1000; // ms
+
+    cout<<endl<< "Leg " << legNum <<endl;
+    cout<< "currentPos: " << currentPos.transpose() <<endl;
+    cout<< "desiredPos: " << desiredPos.transpose() <<endl;
+    cout<< "posOffset: " << posOffset.transpose() <<endl;
+    cout<< "distance: " << dis <<endl;
+    cout<< "desiredSpatialVelocity: " << desiredSpatialVelocity.transpose() <<endl;
+    cout<< "legJointVelocity: " << legJointVelocity.transpose() <<endl;
+
+
+    // Update time for real time loop
+    rsLoop.updateTimeDelay();
+
+    for (int i = 0; i <= dur / rsStep; i++) {
+
+        desiredAngularVelocities*=0;
+
+        jacobian = getJacobian(legNum-1);
+        jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
+        legJointVelocity = jacobianPseudoInverse * desiredSpatialVelocity;
+
+        for (int joint = 0; joint < 3; joint++) {
+            desiredAngularVelocities[(legNum-1)*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
+        }
+
+        nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
+
+        setAngs(nextAngles);
+        rsLoop.realTimeDelay();
+    }
+    
 }
 
 void Hexapod::doJacobianTest(const int &style)
@@ -287,13 +449,12 @@ void Hexapod::doJacobianTest(const int &style)
         // Output desired information
         if (true)
         {
-            cout << endl
-                 << i * rsStep << endl;
+            cout << endl << i * rsStep << endl;
             // cout << endl << i << endl;
-            // cout << "Current Angles" << endl<< currentAngles <<endl;
-            // cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
-            // cout << "Jacobian" << endl<<jacobian<<endl;
-            // cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
+            cout << "Current Angles" << endl<< currentAngles <<endl;
+            cout << "Desired Spatial Velocity" << endl<<desiredSpatialVelocity<<endl;
+            cout << "Jacobian" << endl<<jacobian<<endl;
+            cout << "Inverse Jacobian" << endl<<jacobianPseudoInverse<<endl;
             cout << "Desired Angular Velocity" << endl << desiredAngularVelocities <<endl;
             // cout << "Next Angles" << endl << nextAngles <<endl;
             // cout << "Next Pos" << endl << nextPos <<endl;
@@ -398,12 +559,14 @@ void Hexapod::doJacobianTest(const int &style)
     return;
 }
 
+/*
+
 // Test the IK position control in X Y Z axis individually
 void Hexapod::doLegIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
-    moveToPos(posik);
+    moveLegToPos(posik);
 
     // Set interpolation scale
     int scale = 160;
@@ -415,21 +578,21 @@ void Hexapod::doLegIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -440,21 +603,21 @@ void Hexapod::doLegIKTest()
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -465,21 +628,21 @@ void Hexapod::doLegIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -492,7 +655,7 @@ void Hexapod::doBodyIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
-    moveToPos(posik);
+    moveLegToPos(posik);
 
     // Set interpolation scale
     int scale = 160;
@@ -504,21 +667,21 @@ void Hexapod::doBodyIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -529,21 +692,21 @@ void Hexapod::doBodyIKTest()
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -554,27 +717,29 @@ void Hexapod::doBodyIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     sleep_for(chrono::milliseconds(2000));
     rsLoop.updateTimeDelay();
 }
+
+*/
 
 // Set Angles Overload for 3 individual angle input values
 void Hexapod::setAngs(float coxa, float femur, float tibia)
@@ -651,30 +816,4 @@ void Hexapod::sendAngs()
     if (simulator) {
         simulator->setSimAngle(modifiedAngs);
     }
-}
-
-// Move to Position Overload for 3 individual position input values
-void Hexapod::moveToPos(float x, float y, float z)
-{
-    sendPos(x, y, z);
-};
-// Move to Position Overload for 1x3 eigen vector
-void Hexapod::moveToPos(const Eigen::Vector3d &pos)
-{
-    // cout <<endl<< pos <<endl;
-    sendPos(pos[0], pos[1], pos[2]);
-}
-// Move to a desired 3D coordinate
-void Hexapod::sendPos(float x, float y, float z)
-{
-    // cout<<endl<<x<<","<<y<<","<<z<<","<<endl;
-
-    // Get Angles for set position
-    Eigen::Vector3d angs = doBodyIK(x, y, z);
-
-    cout << endl
-         << angs << endl;
-
-    // Move to angles
-    setAngs(angs);
 }

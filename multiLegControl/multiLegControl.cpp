@@ -78,14 +78,16 @@ void parseCommand(const string& command, Hexapod &hexapod) {
         hexapod.moveToBasic();
     } else if (command == "off") {
         hexapod.moveToOff();
-    } else if (command == "ikTest") {
-        hexapod.doBodyIKTest();
+    // } else if (command == "ikTest") {
+    //     hexapod.doBodyIKTest();
     } else if (command == "jacTest") {
         hexapod.doJacobianTest(1);
-    } else if (command == "walkInit") {
-        hexapod.walkInit();
+    } else if (command == "stand") {
+        hexapod.stand();
     } else if (command == "printPos") {
         hexapod.printPos();
+    } else if (command == "curl") {
+        hexapod.moveToCurled();
     }
     else {
         cout << "Unknown command: " << command << endl;

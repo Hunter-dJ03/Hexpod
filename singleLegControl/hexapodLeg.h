@@ -24,8 +24,8 @@ public:
 
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);
-    void moveToPos(float x, float y, float z);
-    void moveToPos(const Eigen::Vector3d& pos);
+    void moveLegToPos(float x, float y, float z);
+    void moveLegToPos(const Eigen::Vector3d& pos);
 
     void moveToZero();
     void moveToBasic();
