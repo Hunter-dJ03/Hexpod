@@ -79,8 +79,8 @@ private:
 
     const vector<bool> legStatus = {0,1,0,1,0,1};
 
-    constexpr static int centreLegOffset = 125;
-    constexpr static int diagLegOffset = 150;
+    constexpr static int centreLegOffset = 130;
+    constexpr static int diagLegOffset = 180;
     constexpr static int diagLegOffsetAngle = 57;
 };
 

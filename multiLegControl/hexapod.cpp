@@ -29,7 +29,7 @@ Hexapod::Hexapod(unsigned int id, std::unique_ptr<ArduinoController> arduino, RS
     currentAngles = Eigen::VectorXd(18);
     pos = Eigen::VectorXd(18);
 
-    moveToCurled();
+    // moveToCurled();
 }
 
 Hexapod::~Hexapod()
@@ -161,7 +161,7 @@ void Hexapod::printPos() const
 void Hexapod::moveToZero()
 {
     Eigen::VectorXd zeroAnglesVector(18);       
-    float zeroAngles[3] = {0, 1 * M_PI / 180, 359 * M_PI / 180};
+    float zeroAngles[3] = {0, 0 * M_PI / 180, 360 * M_PI / 180};
     for (int i = 0; i < 18; ++i) {
         zeroAnglesVector[i] = zeroAngles[i % 3]; // Repeat the set of 3 angles
     }
@@ -763,15 +763,6 @@ void Hexapod::sendAngs()
 
     Eigen::VectorXd modifiedAngs = currentAngles;
 
-
-    // Subtract the values at the specified indices from 180
-    modifiedAngs(10) = - modifiedAngs(10);
-    modifiedAngs(11) = - modifiedAngs(11);
-    modifiedAngs(13) = - modifiedAngs(13);
-    modifiedAngs(14) = - modifiedAngs(14);
-    modifiedAngs(16) = - modifiedAngs(16);
-    modifiedAngs(17) = - modifiedAngs(17);
-
     if (arduinoConnected)
     {
         std::vector<std::bitset<11>> angleBinaryRepresentation(modifiedAngs.size());
@@ -780,7 +771,42 @@ void Hexapod::sendAngs()
             if ((i+1)%3==0) {
                 baseValue = -baseValue+360;
             }
-            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue+angleInits[i%3], 1)));
+
+            baseValue+=angleInits[i%3];
+
+            if (i == 10 || i == 11 || i == 13 || i == 14 || i == 16 || i == 17) {
+                baseValue = 180 - baseValue;
+            };
+
+            if (!i%3) {
+                if (baseValue > angleInits[i%3] + 60) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] + 60 << endl;
+                    baseValue = angleInits[i%3] + 60;
+                } else if (baseValue < angleInits[i%3] - 60) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] - 60 << endl;
+                    baseValue = angleInits[i%3] - 60;
+                }
+            } else if (i%3) {
+                if (baseValue > 180) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 180 << endl;
+                    baseValue = 180;
+                } else if (baseValue < 0) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 0 << endl;
+                    baseValue = 0;
+                }
+            } else {
+                if (baseValue > 180) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 180 << endl;
+                    baseValue = 180;
+                } else if (baseValue < 0) {
+                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 0 << endl;
+                    baseValue = 0;
+                }
+            }
+
+            cout << baseValue << endl;
+
+            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue, 1)));
             angleBinaryRepresentation[i] = bit;
         }
 
@@ -814,6 +840,15 @@ void Hexapod::sendAngs()
     }
 
     if (simulator) {
+
+        // Subtract the values at the specified indices from 180
+        modifiedAngs(10) = - modifiedAngs(10);
+        modifiedAngs(11) = - modifiedAngs(11);
+        modifiedAngs(13) = - modifiedAngs(13);
+        modifiedAngs(14) = - modifiedAngs(14);
+        modifiedAngs(16) = - modifiedAngs(16);
+        modifiedAngs(17) = - modifiedAngs(17);
+
         simulator->setSimAngle(modifiedAngs);
     }
 }

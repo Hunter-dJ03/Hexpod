@@ -27,17 +27,17 @@ Servo tibia3;
 
 void initLegs() {
   // Attach Servos
-  coxa1.attach(29);
-  femur1.attach(31);
-  tibia1.attach(33);
+  coxa1.attach(22);
+  femur1.attach(24);
+  tibia1.attach(26);
 
   coxa2.attach(23);
   femur2.attach(25);
   tibia2.attach(27);
 
-  coxa3.attach(22);
-  femur3.attach(24);
-  tibia3.attach(26);
+  coxa3.attach(29);
+  femur3.attach(31);
+  tibia3.attach(33);
 
   //  coxa4.attach();
   //  femur4.attach();
@@ -123,10 +123,10 @@ void loop() {
     float decodedFloats[NUM_VALUES];
     decodeBytes(encodedData, decodedFloats, NUM_VALUES);
 
-    //        Serial.println("Decoded values:");
-    //        for (int i = 0; i < NUM_VALUES; ++i) {
-    //            Serial.println(decodedFloats[i]);
-    //        }
+    Serial.println("Decoded values:");
+    for (int i = 0; i < NUM_VALUES; ++i) {
+        Serial.println(decodedFloats[i]);
+    }
 
     setAngs(decodedFloats);
 
