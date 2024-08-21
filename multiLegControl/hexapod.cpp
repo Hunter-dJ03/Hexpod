@@ -780,10 +780,10 @@ void Hexapod::sendAngs()
 
             if (!i%3) {
                 if (baseValue > angleInits[i%3] + 60) {
-                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] + 60 << endl;
+                    cout << "Coxa out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] + 60 << endl;
                     baseValue = angleInits[i%3] + 60;
                 } else if (baseValue < angleInits[i%3] - 60) {
-                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] - 60 << endl;
+                    cout << "Coxa out of range, "<< baseValue << ", capping arduino at " << angleInits[i%3] - 60 << endl;
                     baseValue = angleInits[i%3] - 60;
                 }
             } else if (i%3) {
@@ -796,10 +796,10 @@ void Hexapod::sendAngs()
                 }
             } else {
                 if (baseValue > 180) {
-                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 180 << endl;
+                    cout << "Tibia out of range, "<< baseValue << ", capping arduino at " << 180 << endl;
                     baseValue = 180;
                 } else if (baseValue < 0) {
-                    cout << "Femur out of range, "<< baseValue << ", capping arduino at " << 0 << endl;
+                    cout << "Tibia out of range, "<< baseValue << ", capping arduino at " << 0 << endl;
                     baseValue = 0;
                 }
             }
