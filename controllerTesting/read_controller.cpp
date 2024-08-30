@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/input.h>
@@ -7,13 +8,13 @@
 // Define the deadzone value
 const int DEADZONE = 2048;
 
-int main() {
+void read_controller_input() {
     const char *device = "/dev/input/event20";  // Using event20 as specified
     int fd = open(device, O_RDONLY);
     
     if (fd == -1) {
         std::cerr << "Failed to open input device." << std::endl;
-        return 1;
+        return;
     }
 
     struct input_event ev;
@@ -26,6 +27,11 @@ int main() {
         }
 
         if (ev.type == EV_ABS || ev.type == EV_KEY) {
+            // Handle deadzone for Right Trigger (code 9) and Left Trigger (code 10)
+            if ((ev.code == 9 || ev.code == 10) && std::abs(ev.value) < DEADZONE) {
+                continue; // Skip further processing if within the deadzone
+            }
+
             switch (ev.code) {
                 case 0: // Left Joystick X
                     std::cout << "Left Joystick X: " << ev.value << " (" 
@@ -52,15 +58,9 @@ int main() {
                               << (ev.value > 0 ? "Down" : "Up") << ")" << std::endl;
                     break;
                 case 9: // Right Trigger
-                    if (std::abs(ev.value) < DEADZONE) {
-                        continue;
-                    }
                     std::cout << "Right Trigger: " << ev.value << std::endl;
                     break;
                 case 10: // Left Trigger
-                    if (std::abs(ev.value) < DEADZONE) {
-                        continue;
-                    }
                     std::cout << "Left Trigger: " << ev.value << std::endl;
                     break;
                 case 317: // Left Joystick Click
@@ -103,5 +103,26 @@ int main() {
     }
 
     close(fd);
+}
+
+void run_simulation() {
+    // Simulation code goes here
+    // For demonstration, we'll just print a message periodically
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "Running simulation..." << std::endl;
+    }
+}
+
+int main() {
+    // Start the controller input reading in a separate thread
+    std::thread input_thread(read_controller_input);
+
+    // Run the simulation in the main thread
+    run_simulation();
+
+    // Join the input thread (although this will not be reached in this infinite loop example)
+    input_thread.join();
+
     return 0;
 }
