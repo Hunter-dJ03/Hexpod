@@ -85,7 +85,7 @@ void RaisimSimulator::addModel()
 {
     // Add the model to the world
     hexapodLegModel = shared_ptr<ArticulatedSystem>(world.addArticulatedSystem(binaryPath.getDirectory() + "/models/hexapod/urdf/" + URDFName));
-    hexapodLegModel->setName("HexapodLegModel");
+    hexapodLegModel->setName("HexapodModel");
 
     // Remove Collision Meshes
     for (int i = 0; i <= 3; ++i)
