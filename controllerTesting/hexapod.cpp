@@ -1,7 +1,7 @@
 #include "hexapod.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "../modules/custom/utilities/utils.h"
-#include "../modules/custom/raisimSimulator/raisimSimulator.h"
+#include "../modules/custom/raisimSimulatorFull/raisimSimulator.h"
 
 #include "matplotlibcpp.h"
 
@@ -23,13 +23,13 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
 {
     if (raisimSimulator)
     {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodV2b.urdf");
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodCustom.urdf");
     }
 
     currentAngles = Eigen::VectorXd(18);
     pos = Eigen::VectorXd(18);
 
-    // moveToCurled();
+    moveToCurled();
 }
 
 HexapodControl::~HexapodControl()
@@ -138,7 +138,7 @@ void HexapodControl::stand()
     };
 
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos, 18);
-
+    cout<<"StandA" << endl;
     moveLegsToPos(legstandPos);
 
     // Update tempPos with new values
@@ -152,11 +152,13 @@ void HexapodControl::stand()
     };
 
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos2, 18);
-
+    cout<<"StandB" << endl;
     moveLegsToPos(legstandPos);
 }
 
 void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
+
+    cout<<"moving"<<endl;
 
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d legJointVelocity;
@@ -165,10 +167,8 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
     Eigen::MatrixXd jacobian;
     Eigen::MatrixXd jacobianPseudoInverse;
 
-
     Eigen::VectorXd posOffset(18);
     posOffset = desiredPos - pos;
-
     int dur = 1000;
 
     // cout<<endl<< "Leg " << legNum <<endl;
@@ -182,27 +182,22 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
 
     // Update time for real time loop
     rsLoop.updateTimeDelay();
-
     for (int i = 0; i <= dur / rsStep; i++) {
-
         desiredAngularVelocities*=0;
 
         for (int legNum = 0; legNum < 6; legNum++) {
-
             desiredSpatialVelocity << posOffset(legNum*3), posOffset(legNum*3+1), posOffset(legNum*3+2);
-
             jacobian = getJacobian(legNum);
             jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
             legJointVelocity = jacobianPseudoInverse * (desiredSpatialVelocity / (dur/1000));
-
             for (int joint = 0; joint < 3; joint++) {
                 desiredAngularVelocities[legNum*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
             }
         }
 
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-
-        setAngs(nextAngles);
+        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        simulator->server->integrateWorldThreadSafe();
         rsLoop.realTimeDelay();
     }
     

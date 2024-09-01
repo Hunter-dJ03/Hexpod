@@ -3,7 +3,7 @@
 
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
-#include "../modules/custom/raisimSimulator/raisimSimulator.h"
+#include "../modules/custom/raisimSimulatorFull/raisimSimulator.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -22,7 +22,8 @@ public:
     void updatePos();
     void printPos() const;
 
-    void integrate();
+    bool active = false;
+    int operationDuration = 0; 
 
     void setAngs(const Eigen::VectorXd& angs);
 
@@ -36,6 +37,7 @@ public:
     void moveToCurled();
 
     void stand();
+    
 
     int id;
     Eigen::VectorXd pos;

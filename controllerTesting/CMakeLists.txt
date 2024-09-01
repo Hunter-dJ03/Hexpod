@@ -26,7 +26,7 @@ add_executable(read_controller
     hexapod.cpp
     ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
     ../modules/custom/utilities/utils.cpp
-    ../modules/custom/raisimSimulator/raisimSimulator.cpp
+    ../modules/custom/raisimSimulatorFull/raisimSimulator.cpp
 )
 
 # Link libraries to executables

@@ -27,13 +27,16 @@ RSTimedLoop rsLoop(rsStep);
 atomic<bool> running(true);
 atomic<float> inputAxisX(0.0f);
 atomic<float> inputAxisY(0.0f);
+atomic<bool> leftBumper(false);
+atomic<bool> rightBumper(false);
+atomic<bool> buttonA(false);
 
 void signalHandler(int signum) {
     running = false; // Stop the loops
 }
 
 void readController() {
-    const char *device = "/dev/input/event25";  // Using event20 as specified
+    const char *device = "/dev/input/event24";  // Using event20 as specified
     int fd = open(device, O_RDONLY);
     
     if (fd == -1) {
@@ -99,10 +102,11 @@ void readController() {
                 //     // cout << "Right Joystick Click: " << ev.value << " (" 
                 //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
                 //     break;
-                // case 304: // Button A
-                //     // cout << "Button A: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
+                case 304: // Button A
+                    // cout << "Button A: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    buttonA = ev.value;
+                    break;
                 // case 307: // Button X
                 //     // cout << "Button X: " << ev.value << " (" 
                 //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
@@ -115,14 +119,18 @@ void readController() {
                 //     // cout << "Button Y: " << ev.value << " (" 
                 //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
                 //     break;
-                // case 311: // Right Bumper
-                //     // cout << "Right Bumper: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
-                // case 310: // Left Bumper
-                //     // cout << "Left Bumper: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
+                case 311: // Right Bumper
+                    // cout << "Right Bumper: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    
+                    
+                    rightBumper = ev.value;
+                    break;
+                case 310: // Left Bumper
+                    // cout << "Left Bumper: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    leftBumper = ev.value;
+                    break;
                 default:
                     // cout << "Unknown event. Code: " << ev.code << " Value: " << ev.value << endl;
                     break;
@@ -133,29 +141,69 @@ void readController() {
     close(fd);
 }
 
-void runHexapod(HexapodControl& Hexapod) {
+void runHexapod(HexapodControl& hexapod) {
     // Simulation code goes here
     
-    Hexapod.rsLoop.updateTimeDelay();
+    Eigen::VectorXd currentPosition = Eigen::VectorXd::Zero(18);
+    Eigen::VectorXd currentVelocity = Eigen::VectorXd::Zero(18);
+
+    hexapod.rsLoop.updateTimeDelay();
+
+    // Record start time
+    auto startTime = chrono::high_resolution_clock::now();
 
     while (running) {
-        float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047) / 2047 * 100;
-        float moveVectorAng = atan2(-inputAxisY, inputAxisX);
 
-        // Remap the angle from [-π, π] to [0, 2π]
-        if (moveVectorAng < 0) {
-            moveVectorAng += 2 * M_PI;
+        // Get current position
+        currentPosition = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
+        currentVelocity = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
+
+        // Preset holding position
+        hexapod.simulator->setSimVelocity(currentPosition, Eigen::VectorXd::Zero(18));
+
+
+        if (hexapod.active) {
+            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047) / 2047 * 100;
+            float moveVectorAng = atan2(-inputAxisY, inputAxisX);
+
+            // Remap the angle from [-π, π] to [0, 2π]
+            if (moveVectorAng < 0) {
+                moveVectorAng += 2 * M_PI;
+            }
+
+            // Set precision and width for consistent output
+            cout << "\rMove Vector: " 
+                    << fixed << setprecision(2) << setw(6) << moveVectorMag << "\% at "
+                    << fixed << setprecision(2) << setw(6) << moveVectorAng 
+                    << flush;
+        }
+        
+        if (leftBumper && rightBumper) {
+
+            if (!hexapod.active) {
+                cout<<"standing";
+                hexapod.stand();
+            } else {
+                // hexapod.moveToOff();e
+            }
+
+            hexapod.active == !hexapod.active;
+        } 
+
+        if (buttonA) {
+            hexapod.moveToZero();
         }
 
-        // Set precision and width for consistent output
-        cout << "\rMove Vector: " 
-                  << fixed << setprecision(2) << setw(6) << moveVectorMag << "\% at "
-                  << fixed << setprecision(2) << setw(6) << moveVectorAng 
-                  << flush;
-
-        Hexapod.rsLoop.realTimeDelay();
-        Hexapod.simulator->server->integrateWorldThreadSafe();
+        hexapod.rsLoop.realTimeDelay();
+        hexapod.simulator->server->integrateWorldThreadSafe();
     }
+
+    // Calculate the duration
+    auto endTime = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = endTime - startTime;
+    
+    // Output the duration
+    cout << "\nrunHexapod loop duration: " << elapsed.count() << " seconds." << endl;
 }
 
 int main(int argc, char* argv[]) {
