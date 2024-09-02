@@ -45,6 +45,9 @@ void RaisimSimulator::setSimVelocity(Eigen::VectorXd nextAngles, Eigen::VectorXd
     // Find controlled angular velocities through PI controller
     Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities + Kp.cwiseProduct(desiredAngularVelocities - currentAngularVelocities) + Ki.cwiseProduct(nextAngles - currentAngles);
     // Set the simulation model joint velocities
+
+    // cout<<"Setting Velocity"<<endl;
+
     hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
 }
 

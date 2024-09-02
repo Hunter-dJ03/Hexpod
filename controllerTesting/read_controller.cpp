@@ -30,14 +30,21 @@ atomic<float> inputAxisY(0.0f);
 atomic<bool> leftBumper(false);
 atomic<bool> rightBumper(false);
 atomic<bool> buttonA(false);
+atomic<bool> buttonB(false);
+atomic<bool> buttonY(false);
+atomic<bool> buttonX(false);
+atomic<int> dPadX(0);
+atomic<int> dPadY(0);
+
+
 
 void signalHandler(int signum) {
     running = false; // Stop the loops
 }
 
 void readController() {
-    const char *device = "/dev/input/event24";  // Using event20 as specified
-    int fd = open(device, O_RDONLY);
+    const char *device = "/dev/input/event20";  // Using event20 as specified
+    int fd = open(device, O_RDONLY);    
     
     if (fd == -1) {
         cerr << "Failed to open input device." << endl;
@@ -80,14 +87,16 @@ void readController() {
                 //     // cout << "Right Joystick Y: " << ev.value << " (" 
                 //     //           << (ev.value < 0 ? "Up" : "Down") << ")" << endl;
                 //     break;
-                // case 16: // Dpad X
-                //     // cout << "Dpad X: " << ev.value << " (" 
-                //     //           << (ev.value < 0 ? "Left" : "Right") << ")" << endl;
-                //     break;
-                // case 17: // DPad Y
-                //     // cout << "DPad Y: " << ev.value << " (" 
-                //     //           << (ev.value > 0 ? "Down" : "Up") << ")" << endl;
-                //     break;
+                case 16: // Dpad X
+                    // cout << "Dpad X: " << ev.value << " (" 
+                    //           << (ev.value < 0 ? "Left" : "Right") << ")" << endl;
+                    dPadX = ev.value;
+                    break;
+                case 17: // DPad Y
+                    // cout << "DPad Y: " << ev.value << " (" 
+                    //           << (ev.value > 0 ? "Down" : "Up") << ")" << endl;
+                    dPadY = ev.value;
+                    break;
                 // case 9: // Right Trigger
                 //     // cout << "Right Trigger: " << ev.value << endl;
                 //     break;
@@ -107,18 +116,21 @@ void readController() {
                     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
                     buttonA = ev.value;
                     break;
-                // case 307: // Button X
-                //     // cout << "Button X: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
-                // case 305: // Button B
-                //     // cout << "Button B: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
-                // case 308: // Button Y
-                //     // cout << "Button Y: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
+                case 307: // Button X
+                    // cout << "Button X: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    buttonX = ev.value;
+                    break;
+                case 305: // Button B
+                    // cout << "Button B: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    buttonB = ev.value;
+                    break;
+                case 308: // Button Y
+                    // cout << "Button Y: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    buttonY = ev.value;
+                    break;
                 case 311: // Right Bumper
                     // cout << "Right Bumper: " << ev.value << " (" 
                     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
@@ -142,28 +154,28 @@ void readController() {
 }
 
 void runHexapod(HexapodControl& hexapod) {
-    // Simulation code goes here
-    
-    Eigen::VectorXd currentPosition = Eigen::VectorXd::Zero(18);
-    Eigen::VectorXd currentVelocity = Eigen::VectorXd::Zero(18);
-
     hexapod.rsLoop.updateTimeDelay();
 
     // Record start time
     auto startTime = chrono::high_resolution_clock::now();
+    hexapod.desiredAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
+
+    // cout<<hexapod.desiredAngles;
 
     while (running) {
 
         // Get current position
-        currentPosition = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
-        currentVelocity = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
+        hexapod.currentAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
+        hexapod.currentAngularVelocities = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
+
+        hexapod.updatePos();
 
         // Preset holding position
-        hexapod.simulator->setSimVelocity(currentPosition, Eigen::VectorXd::Zero(18));
+        hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
 
 
         if (hexapod.active) {
-            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047) / 2047 * 100;
+            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 * 100;
             float moveVectorAng = atan2(-inputAxisY, inputAxisX);
 
             // Remap the angle from [-π, π] to [0, 2π]
@@ -178,20 +190,52 @@ void runHexapod(HexapodControl& hexapod) {
                     << flush;
         }
         
+        // hexapod.moveToOff();
+
         if (leftBumper && rightBumper) {
 
             if (!hexapod.active) {
-                cout<<"standing";
+                cout<<endl<<"standing" <<endl;
+                hexapod.active = true;
                 hexapod.stand();
+                
             } else {
-                // hexapod.moveToOff();e
+                cout<<endl<<"turning off" <<endl;
+                hexapod.active = false;
+                hexapod.off();
+                
             }
-
-            hexapod.active == !hexapod.active;
+           
         } 
+        
 
         if (buttonA) {
             hexapod.moveToZero();
+
+        }
+
+        if (buttonB) {
+            hexapod.moveToCurled();
+        }
+
+        if (buttonX) {
+            if (dPadX == -1) {
+                hexapod.jacobianTest(0);
+            } else if (dPadX == 1) {
+                hexapod.jacobianTest(1);
+            } else if (dPadY == 1) {
+                hexapod.jacobianTest(2);
+            }
+        }
+
+        
+
+
+
+        if (buttonY) {
+            cout<<"Current Angles: "<< hexapod.currentAngles<<endl;
+            cout<<"Desired Angles: "<< hexapod.desiredAngles<<endl;
+            hexapod.printPos();
         }
 
         hexapod.rsLoop.realTimeDelay();
@@ -201,6 +245,8 @@ void runHexapod(HexapodControl& hexapod) {
     // Calculate the duration
     auto endTime = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = endTime - startTime;
+
+    hexapod.simulator->server->closeConnection();
     
     // Output the duration
     cout << "\nrunHexapod loop duration: " << elapsed.count() << " seconds." << endl;

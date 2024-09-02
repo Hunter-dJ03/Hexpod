@@ -28,6 +28,10 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
 
     currentAngles = Eigen::VectorXd(18);
     pos = Eigen::VectorXd(18);
+    desiredAngles = Eigen::VectorXd(18);
+    currentAngularVelocities = Eigen::VectorXd(18);
+
+    active = false;
 
     moveToCurled();
 }
@@ -55,6 +59,16 @@ Eigen::MatrixXd HexapodControl::getJacobian(int legNum) const
     Jac(2, 0) = 0;
     Jac(2, 1) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]);
     Jac(2, 2) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
+
+    // Jac(0, 0) = -sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
+    // Jac(0, 1) = -cos(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
+    // Jac(0, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * cos(currentAngles[0]);
+    // Jac(1, 0) = cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
+    // Jac(1, 1) = -sin(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
+    // Jac(1, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * sin(currentAngles[0]);
+    // Jac(2, 0) = 0;
+    // Jac(2, 1) = 0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]);
+    // Jac(2, 2) = 0.221426 * cos(currentAngles[1] + currentAngles[2]);
 
     // cout << "Jac" << endl << Jac << endl;
 
@@ -108,8 +122,11 @@ void HexapodControl::moveToOff()
     for (int i = 0; i < 18; ++i) {
         offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }
+
     setAngs(offAnglesVector);
+    // moveLegsToPos(offAnglesVector);
 }
+
 // Move to curled position
 void HexapodControl::moveToCurled()
 {
@@ -118,17 +135,48 @@ void HexapodControl::moveToCurled()
     for (int i = 0; i < 18; ++i) {
         offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }
+
     setAngs(offAnglesVector);
+}
+
+// Move to initial position for walk cycle
+void HexapodControl::off()
+{
+
+    Eigen::VectorXd legOffPos(18);
+
+    double tempPosA[18] = {
+        0.235586, 0.362771, 0.0,
+        0.382555, 0.0, 0.0,
+        0.235586, -0.362771, 0.0,
+        -0.235586, -0.362771, 0.0,
+        -0.382555, 0.0, 0.0,
+        -0.235586, 0.362771, 0.0
+    };
+
+    legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
+    moveLegsToPos(legOffPos);
+
+    double tempPosB[18] = {
+        0.19, 0.29, 0.0,
+        0.29, 0, 0.0,
+        0.19, -0.29, 0.0,
+        -0.19, -0.29, 0.0,
+        -0.29, 0, 0.0,
+        -0.19, 0.29, 0.0
+    };
+
+    legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosB, 18);
+    moveLegsToPos(legOffPos);
 }
 
 // Move to initial position for walk cycle
 void HexapodControl::stand()
 {
-    Eigen::VectorXd nextAngles(18);
 
     Eigen::VectorXd legstandPos(18);
 
-    double tempPos[18] = {
+    double tempPosA[18] = {
         0.235586, 0.362771, 0,
         0.382555, 0, 0,
         0.235586, -0.362771, 0,
@@ -137,12 +185,10 @@ void HexapodControl::stand()
         -0.235586, 0.362771, 0
     };
 
-    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos, 18);
-    cout<<"StandA" << endl;
+    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
     moveLegsToPos(legstandPos);
 
-    // Update tempPos with new values
-    double tempPos2[18] = {
+    double tempPosB[18] = {
         0.235586, 0.362771, -0.113248,
         0.382555, 0, -0.113248,
         0.235586, -0.362771, -0.113248,
@@ -151,14 +197,12 @@ void HexapodControl::stand()
         -0.235586, 0.362771, -0.113248
     };
 
-    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPos2, 18);
-    cout<<"StandB" << endl;
+    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosB, 18);
     moveLegsToPos(legstandPos);
 }
 
 void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
 
-    cout<<"moving"<<endl;
 
     Eigen::Vector3d desiredSpatialVelocity;
     Eigen::Vector3d legJointVelocity;
@@ -171,18 +215,16 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
     posOffset = desiredPos - pos;
     int dur = 1000;
 
-    // cout<<endl<< "Leg " << legNum <<endl;
-    // cout<< "currentPos: " << currentPos.transpose() <<endl;
+    // cout<< "currentPos: " << pos.transpose() <<endl;
     // cout<< "desiredPos: " << desiredPos.transpose() <<endl;
     // cout<< "posOffset: " << posOffset.transpose() <<endl;
-    // cout<< "distance: " << dis <<endl;
     // cout<< "desiredSpatialVelocity: " << desiredSpatialVelocity.transpose() <<endl;
     // cout<< "legJointVelocity: " << legJointVelocity.transpose() <<endl;
 
 
     // Update time for real time loop
-    rsLoop.updateTimeDelay();
-    for (int i = 0; i <= dur / rsStep; i++) {
+    // rsLoop.updateTimeDelay();
+    for (int i = 0; i < dur / rsStep; i++) {
         desiredAngularVelocities*=0;
 
         for (int legNum = 0; legNum < 6; legNum++) {
@@ -197,9 +239,14 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
 
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
         simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+
+        currentAngles = nextAngles;
+
         simulator->server->integrateWorldThreadSafe();
         rsLoop.realTimeDelay();
     }
+
+    desiredAngles = currentAngles;
     
 }
 
@@ -269,6 +316,7 @@ void HexapodControl::moveLegToPos(const Eigen::Vector3d& desiredPos, const int l
 void HexapodControl::setAngs(const Eigen::VectorXd &angs)
 {
     currentAngles = angs;
+    
     sendAngs();
 
     updatePos();
@@ -358,13 +406,106 @@ void HexapodControl::sendAngs()
     if (simulator) {
 
         // Subtract the values at the specified indices from 180
-        modifiedAngs(10) = - modifiedAngs(10);
-        modifiedAngs(11) = - modifiedAngs(11);
-        modifiedAngs(13) = - modifiedAngs(13);
-        modifiedAngs(14) = - modifiedAngs(14);
-        modifiedAngs(16) = - modifiedAngs(16);
-        modifiedAngs(17) = - modifiedAngs(17);
+        // modifiedAngs(10) = - modifiedAngs(10);
+        // modifiedAngs(11) = - modifiedAngs(11);
+        // modifiedAngs(13) = - modifiedAngs(13);
+        // modifiedAngs(14) = - modifiedAngs(14);
+        // modifiedAngs(16) = - modifiedAngs(16);
+        // modifiedAngs(17) = - modifiedAngs(17);
 
         simulator->setSimAngle(modifiedAngs);
+
+        desiredAngles = modifiedAngs;
     }
 }
+
+void HexapodControl::jacobianTest(const int &style)
+{
+
+    // Test Control Variables
+    float radius = 0.07; // meters
+    double period = 2;   // HZ
+    double cycles = 2;
+
+    // Find Duration
+    int dur = period * cycles * 1000; // ms
+
+    // Create vector variables for control calculations
+    Eigen::Vector3d desiredSpatialVelocity;
+    Eigen::Vector3d legJointVelocity;
+    Eigen::VectorXd desiredAngularVelocities(18);
+    Eigen::VectorXd nextAngles(18);
+    // Eigen::Vector3d nextPos;
+    Eigen::MatrixXd jacobian;
+    Eigen::MatrixXd jacobianPseudoInverse;
+
+    // Set Start Position
+    float offAngles[3] = {0, 45 * M_PI / 180, 265 * M_PI / 180};
+    for (int i = 0; i < 18; ++i) {
+        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    }
+    setAngs(nextAngles);
+
+    // Simulation Cycle
+    for (int i = 0; i <= dur / rsStep + 2000/rsStep; i++)
+    {
+
+        if (i < 2000/rsStep) {
+            simulator->setSimVelocity(desiredAngles, Eigen::VectorXd::Zero(18));
+            rsLoop.realTimeDelay();
+            // Integrate the Simulator server 
+            simulator->server->integrateWorldThreadSafe();
+            continue;
+        }
+
+        // desiredSpatialVelocity << 0,0,0;
+        // Desired spatial velocity of XYZ
+
+        for (int legNum = 0; legNum < 6; legNum++) {
+
+            if (style == 0) {
+                // cout<<endl<<"Jacobian test in X-Y plane" <<endl;
+                desiredSpatialVelocity << 
+                    0,
+                    radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+            } else if (style == 1) {
+                // cout<<endl<<"Jacobian test in X-Z plane" <<endl;
+                desiredSpatialVelocity << 
+                    radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                    0,
+                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+            } else if (style == 2) {
+                // cout<<endl<<"Jacobian test in Y-Z plane" <<endl;
+                desiredSpatialVelocity << 
+                    radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000)),
+                    0;
+            }
+        
+            jacobian = getJacobian(legNum);
+            jacobianPseudoInverse = jacobian.completeOrthogonalDecomposition().pseudoInverse();
+            legJointVelocity = jacobianPseudoInverse * desiredSpatialVelocity;
+
+            for (int joint = 0; joint < 3; joint++) {
+                desiredAngularVelocities[legNum*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
+            }
+        }
+
+        // Find next aqngles using discrete integration
+        nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
+        // nextPos = updatePos();
+
+        // Send the angles to the arduino and simulation as desired        
+        // setAngs(nextAngles);1
+
+        // Send Velcoties to the simulator
+        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+
+        // Implement Real time delay
+        rsLoop.realTimeDelay();
+        // Integrate the Simulator server 
+        simulator->server->integrateWorldThreadSafe();
+    }
+}
+        // Find next aqngles

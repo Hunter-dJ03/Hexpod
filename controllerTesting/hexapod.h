@@ -22,27 +22,36 @@ public:
     void updatePos();
     void printPos() const;
 
-    bool active = false;
+    bool active;
     int operationDuration = 0; 
 
+    // Instant set position
     void setAngs(const Eigen::VectorXd& angs);
 
+    // Velocity set position
     void moveLegToPos(const Eigen::Vector3d& desiredPos, const int legNum);
     void moveLegsToPos(const Eigen::VectorXd& desiredPos);
 
 
+    // Instant positions
     void moveToZero();
     void moveToBasic();
     void moveToOff();
     void moveToCurled();
+    void jacobianTestBase();
 
+    // Velocity positions
     void stand();
-    
+    void off();
+
+    // Velocity Path
+    void jacobianTest(const int &style);
 
     int id;
     Eigen::VectorXd pos;
     Eigen::VectorXd currentAngles;
-    Eigen::Vector3d currentAngularVelocities;
+    Eigen::VectorXd currentAngularVelocities;
+    Eigen::VectorXd desiredAngles;
 
     RSTimedLoop& rsLoop;
     unique_ptr<RaisimSimulator> simulator;
