@@ -122,9 +122,22 @@ void readController(HexapodControl& hexapod) {
                     buttonX = ev.value;
                     break;
                 case 305: // Button B
-                    // cout << "Button B: " << ev.value << " (" 
-                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                    buttonB = ev.value;
+                    static bool wasButtonBPressed = false; // Track the previous state of Button Y
+                    // cout<<"ButtonB Pressed: " <<endl;
+                    if (ev.value == 1 && !wasButtonBPressed) {
+                        // Button B is pressed and was not pressed before (i.e., transition from unpressed to pressed)
+                        cout<<"ButtonB Pressed: " <<endl;
+                        
+                        buttonB = true;
+                        
+                        hexapod.operationDuration = 0;
+                        
+                        wasButtonBPressed = true; // Update the state to pressed
+                    } else {
+                        // Button B is released, reset the state
+                        buttonB = false;
+                        wasButtonBPressed = false;
+                    }
                     break;
                 case 308: // Button Y
                     static bool wasButtonYPressed = false; // Track the previous state of Button Y
@@ -226,11 +239,6 @@ void runHexapod(HexapodControl& hexapod) {
 
         if (buttonA) {
             hexapod.moveToZero();
-
-        }
-
-        if (buttonB) {
-            hexapod.moveToCurled();
         }
 
         if (buttonX) {

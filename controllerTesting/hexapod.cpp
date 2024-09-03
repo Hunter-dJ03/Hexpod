@@ -426,7 +426,6 @@ void HexapodControl::sendAngs()
 
 void HexapodControl::jacobianTest(const int &style)
 {
-
     // Test Control Variables
     float radius = 0.06; // meters
     double period = 2;   // secs
@@ -451,15 +450,23 @@ void HexapodControl::jacobianTest(const int &style)
     // }
     // setAngs(nextAngles);
 
+    operationDuration = dur / rsStep + 2000/rsStep;
+
     // Simulation Cycle
     for (int i = 0; i <= dur / rsStep + 2000/rsStep; i++)
     {
+        cout<<operationDuration<<endl;
+        if (operationDuration <=0) {
+            cout<<"exit"<<endl;
+            break;
+        }
 
         if (i < 2000/rsStep) {
             simulator->setSimVelocity(desiredAngles, Eigen::VectorXd::Zero(18));
             rsLoop.realTimeDelay();
             // Integrate the Simulator server 
             simulator->server->integrateWorldThreadSafe();
+            operationDuration--;
             continue;
         }
 
@@ -514,6 +521,8 @@ void HexapodControl::jacobianTest(const int &style)
         rsLoop.realTimeDelay();
         // Integrate the Simulator server 
         simulator->server->integrateWorldThreadSafe();
+
+        operationDuration--;
     }
 
     desiredAngles = currentAngles;
