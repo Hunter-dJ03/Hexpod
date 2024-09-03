@@ -1,7 +1,7 @@
 #include "hexapod.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "../modules/custom/utilities/utils.h"
-#include "../modules/custom/raisimSimulator/raisimSimulator.h"
+#include "../modules/custom/raisimSimulatorLeg/raisimSimulator.h"
 
 #include "matplotlibcpp.h"
 

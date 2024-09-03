@@ -463,7 +463,7 @@
             rpy="0 5.277176377065159758e-17 -1.2797962189837723024e-32" />
         <parent link="femurv2-cp_l" />
         <child link="tibiav2-cp_l" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>
@@ -473,7 +473,7 @@
             rpy="-1.570796326794896336 4.1572948203217621985e-27 4.8473574358091203186e-17" />
         <parent link="coxav2-cp_l" />
         <child link="femurv2-cp_l" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>
@@ -575,7 +575,7 @@
         <origin xyz="0.11831370849898506514 0 0" rpy="0 5.8915479855140975462e-52 0" />
         <parent link="femurv2-cp_l_2" />
         <child link="tibiav2-cp_l_2" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>
@@ -585,7 +585,7 @@
             rpy="-1.570796326794896336 4.1572969705147401066e-27 -1.1832913578315177081e-30" />
         <parent link="coxav2-cp_l_2" />
         <child link="femurv2-cp_l_2" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>
@@ -688,7 +688,7 @@
             rpy="0 1.4321645470071863198e-17 -8.3370216344272758499e-33" />
         <parent link="femurv2-cp_l_3" />
         <child link="tibiav2-cp_l_3" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>
@@ -698,7 +698,7 @@
             rpy="-1.570796326794896336 4.1572979018096717831e-27 5.3671757578478919314e-18" />
         <parent link="coxav2-cp_l_3" />
         <child link="femurv2-cp_l_3" />
-        <axis xyz="0 0 1" />
+        <axis xyz="0 0 -1" />
         <limit effort="1" velocity="20" />
         <joint_properties friction="0.0" />
     </joint>

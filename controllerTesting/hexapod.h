@@ -38,7 +38,6 @@ public:
     void moveToBasic();
     void moveToOff();
     void moveToCurled();
-    void jacobianTestBase();
 
     // Velocity positions
     void stand();

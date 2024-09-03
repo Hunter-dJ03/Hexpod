@@ -43,7 +43,7 @@ void signalHandler(int signum) {
 }
 
 void readController() {
-    const char *device = "/dev/input/event20";  // Using event20 as specified
+    const char *device = "/dev/input/event24";  // Using event20 as specified
     int fd = open(device, O_RDONLY);    
     
     if (fd == -1) {

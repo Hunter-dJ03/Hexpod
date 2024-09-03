@@ -60,18 +60,6 @@ Eigen::MatrixXd HexapodControl::getJacobian(int legNum) const
     Jac(2, 1) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]);
     Jac(2, 2) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
 
-    // Jac(0, 0) = -sin(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
-    // Jac(0, 1) = -cos(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
-    // Jac(0, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * cos(currentAngles[0]);
-    // Jac(1, 0) = cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925);
-    // Jac(1, 1) = -sin(currentAngles[0]) * (0.221426 * sin(currentAngles[1] + currentAngles[2]) + 0.1183145 * sin(currentAngles[1]));
-    // Jac(1, 2) = -0.221426 * sin(currentAngles[1] + currentAngles[2]) * sin(currentAngles[0]);
-    // Jac(2, 0) = 0;
-    // Jac(2, 1) = 0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]);
-    // Jac(2, 2) = 0.221426 * cos(currentAngles[1] + currentAngles[2]);
-
-    // cout << "Jac" << endl << Jac << endl;
-
     return Jac;
 }
 
@@ -241,6 +229,7 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
         simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
 
         currentAngles = nextAngles;
+        updatePos();
 
         simulator->server->integrateWorldThreadSafe();
         rsLoop.realTimeDelay();
@@ -423,9 +412,9 @@ void HexapodControl::jacobianTest(const int &style)
 {
 
     // Test Control Variables
-    float radius = 0.07; // meters
-    double period = 2;   // HZ
-    double cycles = 2;
+    float radius = 0.06; // meters
+    double period = 2;   // secs
+    double cycles = 5;
 
     // Find Duration
     int dur = period * cycles * 1000; // ms
@@ -440,7 +429,7 @@ void HexapodControl::jacobianTest(const int &style)
     Eigen::MatrixXd jacobianPseudoInverse;
 
     // Set Start Position
-    float offAngles[3] = {0, 45 * M_PI / 180, 265 * M_PI / 180};
+    float offAngles[3] = {0, 40 * M_PI / 180, 258 * M_PI / 180};
     for (int i = 0; i < 18; ++i) {
         nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }
@@ -468,13 +457,13 @@ void HexapodControl::jacobianTest(const int &style)
                 desiredSpatialVelocity << 
                     0,
                     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
-                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+                    -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
             } else if (style == 1) {
                 // cout<<endl<<"Jacobian test in X-Z plane" <<endl;
                 desiredSpatialVelocity << 
                     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
                     0,
-                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+                    -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
             } else if (style == 2) {
                 // cout<<endl<<"Jacobian test in Y-Z plane" <<endl;
                 desiredSpatialVelocity << 
@@ -490,22 +479,27 @@ void HexapodControl::jacobianTest(const int &style)
             for (int joint = 0; joint < 3; joint++) {
                 desiredAngularVelocities[legNum*3+joint] = legJointVelocity[joint]; // Repeat the set of 3 angles
             }
+
         }
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        // nextPos = updatePos();
 
         // Send the angles to the arduino and simulation as desired        
-        // setAngs(nextAngles);1
+        // setAngs(nextAngles);
 
         // Send Velcoties to the simulator
         simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+
+        currentAngles = nextAngles;
+        updatePos();
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
         // Integrate the Simulator server 
         simulator->server->integrateWorldThreadSafe();
     }
+
+    desiredAngles = currentAngles;
 }
         // Find next aqngles
