@@ -20,6 +20,7 @@ public:
     Eigen::MatrixXd getJacobian(int legNum) const;
 
     void updatePos();
+    Eigen::VectorXd doFK(Eigen::VectorXd angs);
     void printPos() const;
 
     bool active;

@@ -42,7 +42,7 @@ void signalHandler(int signum) {
     running = false; // Stop the loops
 }
 
-void readController() {
+void readController(HexapodControl& hexapod) {
     const char *device = "/dev/input/event24";  // Using event20 as specified
     int fd = open(device, O_RDONLY);    
     
@@ -127,9 +127,24 @@ void readController() {
                     buttonB = ev.value;
                     break;
                 case 308: // Button Y
-                    // cout << "Button Y: " << ev.value << " (" 
-                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                    buttonY = ev.value;
+                    static bool wasButtonYPressed = false; // Track the previous state of Button Y
+                    
+                    if (ev.value == 1 && !wasButtonYPressed) {
+                        // Button Y is pressed and was not pressed before (i.e., transition from unpressed to pressed)
+                        buttonY = true;
+                        
+                        // Output the desired information
+                        cout << "Current Angles: " << hexapod.currentAngles << endl;
+                        cout << "Desired Angles: " << hexapod.desiredAngles << endl;
+                        hexapod.printPos();
+                        cout <<endl;
+                        
+                        wasButtonYPressed = true; // Update the state to pressed
+                    } else {
+                        // Button Y is released, reset the state
+                        buttonY = false;
+                        wasButtonYPressed = false;
+                    }
                     break;
                 case 311: // Right Bumper
                     // cout << "Right Bumper: " << ev.value << " (" 
@@ -232,11 +247,11 @@ void runHexapod(HexapodControl& hexapod) {
 
 
 
-        if (buttonY) {
-            cout<<"Current Angles: "<< hexapod.currentAngles<<endl;
-            cout<<"Desired Angles: "<< hexapod.desiredAngles<<endl;
-            hexapod.printPos();
-        }
+        // if (buttonY) {
+        //     cout<<"Current Angles: "<< hexapod.currentAngles<<endl;
+        //     cout<<"Desired Angles: "<< hexapod.desiredAngles<<endl;
+        //     hexapod.printPos();
+        // }
 
         hexapod.rsLoop.realTimeDelay();
         hexapod.simulator->server->integrateWorldThreadSafe();
@@ -286,7 +301,7 @@ int main(int argc, char* argv[]) {
     HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
 
     // Start the controller input reading in a separate thread
-    thread input_thread(readController);
+    thread input_thread(readController, ref(hexapod));
 
     // Register signal handler
     signal(SIGINT, signalHandler);

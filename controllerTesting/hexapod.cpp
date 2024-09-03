@@ -66,13 +66,29 @@ Eigen::MatrixXd HexapodControl::getJacobian(int legNum) const
 // Perform forward kinematics of the HexapodControl leg to get end affector positions
 void HexapodControl::updatePos()
 {
+    // for (int legNum = 0; legNum < 6; legNum++) {
+    
+    //     pos(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
+    //     pos(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2])*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
+    //     pos(legNum*3+2) = coxaZ + tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]);
+    // }
+
+    pos = doFK(currentAngles);
+}
+
+Eigen::VectorXd HexapodControl::doFK(Eigen::VectorXd angs) {
+    Eigen::VectorXd position(18);
+
     for (int legNum = 0; legNum < 6; legNum++) {
     
-        pos(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
-        pos(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2])*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
-        pos(legNum*3+2) = coxaZ + tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]);
+        position(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + angs[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1] + angs[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1]);
+        position(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + angs[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(angs[legNum*3+1] + angs[legNum*3+2])*sin(bodyLegAngles[legNum] + angs[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1]);
+        position(legNum*3+2) = coxaZ + tibiaX*sin(angs[legNum*3+1] + angs[legNum*3+2]) + femurX*sin(angs[legNum*3+1]);
     }
+
+    return position;
 }
+
 // Print End Affector Positions
 void HexapodControl::printPos() const
 {
@@ -428,12 +444,12 @@ void HexapodControl::jacobianTest(const int &style)
     Eigen::MatrixXd jacobian;
     Eigen::MatrixXd jacobianPseudoInverse;
 
-    // Set Start Position
-    float offAngles[3] = {0, 40 * M_PI / 180, 258 * M_PI / 180};
-    for (int i = 0; i < 18; ++i) {
-        nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
-    }
-    setAngs(nextAngles);
+    // // Set Start Position
+    // float offAngles[3] = {0, 40 * M_PI / 180, 258 * M_PI / 180};
+    // for (int i = 0; i < 18; ++i) {
+    //     nextAngles[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+    // }
+    // setAngs(nextAngles);
 
     // Simulation Cycle
     for (int i = 0; i <= dur / rsStep + 2000/rsStep; i++)
