@@ -28,8 +28,11 @@ RaisimSimulator::~RaisimSimulator()
 // Send joint angles to simulation model with Vector3d input
 void RaisimSimulator::setSimAngle(Eigen::VectorXd angs)
 {
+    cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
     // Send joint angles to simulation model
     hexapodLegModel->setGeneralizedCoordinate(angs);
+        cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
+
 }
 
 
@@ -42,11 +45,15 @@ void RaisimSimulator::setSimVelocity(Eigen::VectorXd nextAngles, Eigen::VectorXd
     // Convert raisim::VecDyn type to Eigen::Vector3d
     Eigen::VectorXd currentAngles = convertVecDynToEigen(currentAnglesVecDyn);
     Eigen::VectorXd currentAngularVelocities = convertVecDynToEigen(currentAngularVelocitiesVecDyn);
-    // Find controlled angular velocities through PI controller
-    Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities + Kp.cwiseProduct(desiredAngularVelocities - currentAngularVelocities) + Ki.cwiseProduct(nextAngles - currentAngles);
-    // Set the simulation model joint velocities
 
-    // cout<<"Setting Velocity"<<endl;
+    Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities;
+    // Find controlled angular velocities through PI controller
+    controlledAngularVelocities.tail(18) = currentAngularVelocities.tail(18) 
+                                         + Kp.cwiseProduct(desiredAngularVelocities.tail(18) - currentAngularVelocities.tail(18)) 
+                                         + Ki.cwiseProduct(nextAngles.tail(18) - currentAngles.tail(18));
+ 
+
+    // cout<<"Setting Velocity"<< controlledAngularVelocities <<endl;;
 
     hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
 }
@@ -56,7 +63,7 @@ void RaisimSimulator::initialize(const float rsStep)
 {
     // Make World and Size
     world.setTimeStep(rsStep / 1000);
-    auto ground = world.addGround(-2);
+    auto ground = world.addGround(-0.02);
 
     // Add Hexapod Leg Model to world
     addModel();
@@ -80,13 +87,13 @@ void RaisimSimulator::addModel()
     hexapodLegModel->setName("HexapodModel");
 
     // Remove Collision Meshes
-    for (int i = 0; i <= 3; ++i)
-    {
-        for (int j = i + 1; j <= 3; ++j)
-        {
-            hexapodLegModel->ignoreCollisionBetween(i, j);
-        }
-    }
+    // for (int i = 0; i <= 3; ++i)
+    // {
+    //     for (int j = i + 1; j <= 3; ++j)
+    //     {
+    //         hexapodLegModel->ignoreCollisionBetween(i, j);
+    //     }
+    // }
 }
 
 

@@ -20,7 +20,7 @@
 using namespace std;
 
 const bool raisimSimulator = true;
-const float rsStep = 10; // Real Time Step (ms)
+const float rsStep = 1; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 
@@ -35,8 +35,6 @@ atomic<bool> buttonY(false);
 atomic<bool> buttonX(false);
 atomic<int> dPadX(0);
 atomic<int> dPadY(0);
-
-
 
 void signalHandler(int signum) {
     running = false; // Stop the loops
@@ -182,25 +180,25 @@ void readController(HexapodControl& hexapod) {
 }
 
 void runHexapod(HexapodControl& hexapod) {
-    hexapod.rsLoop.updateTimeDelay();
-
+    
     // Record start time
     auto startTime = chrono::high_resolution_clock::now();
     hexapod.desiredAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
-
     // cout<<hexapod.desiredAngles;
+    hexapod.rsLoop.updateTimeDelay();
 
     while (running) {
-
+        // hexapod.rsLoop.realTimeDelay();
+        // hexapod.simulator->server->integrateWorldThreadSafe();
+        // continue;
         // Get current position
         hexapod.currentAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
         hexapod.currentAngularVelocities = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
 
         hexapod.updatePos();
-
+        
         // Preset holding position
         hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
-
 
         if (hexapod.active) {
             float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 * 100;
@@ -237,9 +235,9 @@ void runHexapod(HexapodControl& hexapod) {
         } 
         
 
-        if (buttonA) {
-            hexapod.moveToZero();
-        }
+        // if (buttonA) {
+        //     hexapod.moveToZero();
+        // }
 
         if (buttonX) {
             if (dPadX == -1) {
@@ -250,10 +248,6 @@ void runHexapod(HexapodControl& hexapod) {
                 hexapod.jacobianTest(2);
             }
         }
-
-        
-
-
 
         // if (buttonY) {
         //     cout<<"Current Angles: "<< hexapod.currentAngles<<endl;
@@ -269,7 +263,7 @@ void runHexapod(HexapodControl& hexapod) {
     auto endTime = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed = endTime - startTime;
 
-    hexapod.simulator->server->closeConnection();
+    hexapod.simulator->server->killServer();
     
     // Output the duration
     cout << "\nrunHexapod loop duration: " << elapsed.count() << " seconds." << endl;
@@ -304,13 +298,10 @@ int main(int argc, char* argv[]) {
 
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
-
     // Create Hexapod 
     HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
-
     // Start the controller input reading in a separate thread
     thread input_thread(readController, ref(hexapod));
-
     // Register signal handler
     signal(SIGINT, signalHandler);
 

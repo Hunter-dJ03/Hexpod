@@ -21,18 +21,22 @@ using chrono::system_clock;
 HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath)
     : id(id), arduino(move(arduino)), rsLoop(rsLoop), arduinoConnected(arduinoConnected), rsStep(rsStep)
 {
+
     if (raisimSimulator)
     {
         simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodCustom.urdf");
     }
+    currentAngles = Eigen::VectorXd(25);
+    pos = Eigen::VectorXd(25);
+    desiredAngles = Eigen::VectorXd(25);
+    currentAngularVelocities = Eigen::VectorXd(24);
 
-    currentAngles = Eigen::VectorXd(18);
-    pos = Eigen::VectorXd(18);
-    desiredAngles = Eigen::VectorXd(18);
-    currentAngularVelocities = Eigen::VectorXd(18);
+    currentAngles = simulator->convertVecDynToEigen(simulator->hexapodLegModel->getGeneralizedCoordinate());
+
+    currentAngularVelocities = simulator->convertVecDynToEigen(simulator->hexapodLegModel->getGeneralizedVelocity());
+
 
     active = false;
-
     moveToCurled();
 }
 
@@ -50,15 +54,15 @@ Eigen::MatrixXd HexapodControl::getJacobian(int legNum) const
 {
     Eigen::MatrixXd Jac(3, 3);
 
-    Jac(0, 0) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(coxaX + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]));
-    Jac(0, 1) = -cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]));
-    Jac(0, 2) = -tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
-    Jac(1, 0) = cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(coxaX + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]));
-    Jac(1, 1) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*(tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]));
-    Jac(1, 2) = -tibiaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
+    Jac(0, 0) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*(coxaX + tibiaX*cos(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]) + femurX*cos(currentAngles[legNum*3+8]));
+    Jac(0, 1) = -cos(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*(tibiaX*sin(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]) + femurX*sin(currentAngles[legNum*3+8]));
+    Jac(0, 2) = -tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*sin(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]);
+    Jac(1, 0) = cos(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*(coxaX + tibiaX*cos(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]) + femurX*cos(currentAngles[legNum*3+8]));
+    Jac(1, 1) = -sin(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*(tibiaX*sin(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]) + femurX*sin(currentAngles[legNum*3+8]));
+    Jac(1, 2) = -tibiaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+7])*sin(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]);
     Jac(2, 0) = 0;
-    Jac(2, 1) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(currentAngles[legNum*3+1]);
-    Jac(2, 2) = tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]);
+    Jac(2, 1) = tibiaX*cos(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]) + femurX*cos(currentAngles[legNum*3+8]);
+    Jac(2, 2) = tibiaX*cos(currentAngles[legNum*3+8] + currentAngles[legNum*3+9]);
 
     return Jac;
 }
@@ -66,14 +70,7 @@ Eigen::MatrixXd HexapodControl::getJacobian(int legNum) const
 // Perform forward kinematics of the HexapodControl leg to get end affector positions
 void HexapodControl::updatePos()
 {
-    // for (int legNum = 0; legNum < 6; legNum++) {
-    
-    //     pos(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
-    //     pos(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(currentAngles[legNum*3+1] + currentAngles[legNum*3+2])*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + currentAngles[legNum*3+0])*cos(currentAngles[legNum*3+1]);
-    //     pos(legNum*3+2) = coxaZ + tibiaX*sin(currentAngles[legNum*3+1] + currentAngles[legNum*3+2]) + femurX*sin(currentAngles[legNum*3+1]);
-    // }
-
-    pos = doFK(currentAngles);
+    pos.tail(18) = doFK(currentAngles);
 }
 
 Eigen::VectorXd HexapodControl::doFK(Eigen::VectorXd angs) {
@@ -81,9 +78,9 @@ Eigen::VectorXd HexapodControl::doFK(Eigen::VectorXd angs) {
 
     for (int legNum = 0; legNum < 6; legNum++) {
     
-        position(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + angs[legNum*3+0]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1] + angs[legNum*3+2]) + femurX*cos(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1]);
-        position(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + angs[legNum*3+0]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(angs[legNum*3+1] + angs[legNum*3+2])*sin(bodyLegAngles[legNum] + angs[legNum*3+0]) + femurX*sin(bodyLegAngles[legNum] + angs[legNum*3+0])*cos(angs[legNum*3+1]);
-        position(legNum*3+2) = coxaZ + tibiaX*sin(angs[legNum*3+1] + angs[legNum*3+2]) + femurX*sin(angs[legNum*3+1]);
+        position(legNum*3) = coxaX*cos(bodyLegAngles[legNum] + angs[legNum*3+7]) + bodyLegOffsets[legNum]*cos(bodyLegAngles[legNum]) + tibiaX*cos(bodyLegAngles[legNum] + angs[legNum*3+7])*cos(angs[legNum*3+8] + angs[legNum*3+9]) + femurX*cos(bodyLegAngles[legNum] + angs[legNum*3+7])*cos(angs[legNum*3+8]);
+        position(legNum*3+1) = coxaX*sin(bodyLegAngles[legNum] + angs[legNum*3+7]) + bodyLegOffsets[legNum]*sin(bodyLegAngles[legNum]) + tibiaX*cos(angs[legNum*3+8] + angs[legNum*3+9])*sin(bodyLegAngles[legNum] + angs[legNum*3+7]) + femurX*sin(bodyLegAngles[legNum] + angs[legNum*3+7])*cos(angs[legNum*3+8]);
+        position(legNum*3+2) = coxaZ + tibiaX*sin(angs[legNum*3+8] + angs[legNum*3+9]) + femurX*sin(angs[legNum*3+8]);
     }
 
     return position;
@@ -115,7 +112,6 @@ void HexapodControl::moveToBasic()
     for (int i = 0; i < 18; ++i) {
         basicAnglesVector[i] = basicAngles[i % 3]; // Repeat the set of 3 angles
     }
-
     setAngs(basicAnglesVector);
 }
 // Move to position that should fold back past limit when power disabled
@@ -139,7 +135,6 @@ void HexapodControl::moveToCurled()
     for (int i = 0; i < 18; ++i) {
         offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
     }
-
     setAngs(offAnglesVector);
 }
 
@@ -177,7 +172,6 @@ void HexapodControl::off()
 // Move to initial position for walk cycle
 void HexapodControl::stand()
 {
-
     Eigen::VectorXd legstandPos(18);
 
     double tempPosA[18] = {
@@ -190,6 +184,7 @@ void HexapodControl::stand()
     };
 
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
+
     moveLegsToPos(legstandPos);
 
     double tempPosB[18] = {
@@ -202,6 +197,7 @@ void HexapodControl::stand()
     };
 
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosB, 18);
+
     moveLegsToPos(legstandPos);
 }
 
@@ -216,7 +212,7 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
     Eigen::MatrixXd jacobianPseudoInverse;
 
     Eigen::VectorXd posOffset(18);
-    posOffset = desiredPos - pos;
+    posOffset = desiredPos - pos.tail(18);
     int dur = 1000;
 
     // cout<< "currentPos: " << pos.transpose() <<endl;
@@ -229,7 +225,7 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
     // Update time for real time loop
     // rsLoop.updateTimeDelay();
     for (int i = 0; i < dur / rsStep; i++) {
-        desiredAngularVelocities*=0;
+        desiredAngularVelocities.setZero();
 
         for (int legNum = 0; legNum < 6; legNum++) {
             desiredSpatialVelocity << posOffset(legNum*3), posOffset(legNum*3+1), posOffset(legNum*3+2);
@@ -241,10 +237,10 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd& desiredPos) {
             }
         }
 
-        nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        nextAngles = currentAngles.tail(18) + desiredAngularVelocities * (rsStep / 1000);
 
-        currentAngles = nextAngles;
+        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        currentAngles.tail(18) = nextAngles;
         updatePos();
 
         simulator->server->integrateWorldThreadSafe();
@@ -320,7 +316,7 @@ void HexapodControl::moveLegToPos(const Eigen::Vector3d& desiredPos, const int l
 // Set Angles Overload for 1x3 eigen vector
 void HexapodControl::setAngs(const Eigen::VectorXd &angs)
 {
-    currentAngles = angs;
+    currentAngles.tail(18) = angs;
     
     sendAngs();
 
@@ -331,7 +327,6 @@ void HexapodControl::sendAngs()
 {
 
     Eigen::VectorXd modifiedAngs = currentAngles;
-
     if (arduinoConnected)
     {
         std::vector<std::bitset<11>> angleBinaryRepresentation(modifiedAngs.size());
@@ -417,9 +412,7 @@ void HexapodControl::sendAngs()
         // modifiedAngs(14) = - modifiedAngs(14);
         // modifiedAngs(16) = - modifiedAngs(16);
         // modifiedAngs(17) = - modifiedAngs(17);
-
         simulator->setSimAngle(modifiedAngs);
-
         desiredAngles = modifiedAngs;
     }
 }
@@ -506,7 +499,7 @@ void HexapodControl::jacobianTest(const int &style)
         }
 
         // Find next aqngles using discrete integration
-        nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
+        nextAngles = currentAngles.tail(18) + desiredAngularVelocities * (rsStep / 1000);
 
         // Send the angles to the arduino and simulation as desired        
         // setAngs(nextAngles);
@@ -514,7 +507,7 @@ void HexapodControl::jacobianTest(const int &style)
         // Send Velcoties to the simulator
         simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
 
-        currentAngles = nextAngles;
+        currentAngles.tail(18) = nextAngles;
         updatePos();
 
         // Implement Real time delay

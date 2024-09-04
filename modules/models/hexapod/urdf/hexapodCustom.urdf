@@ -1,11 +1,11 @@
 <robot name="onshape">
 
-    <link name="world"/>
+    <!-- <link name="world"/>
 
     <joint name="fixed" type="fixed">
         <parent link="world"/>
         <child link="bodyv2"/>
-    </joint>
+    </joint> -->
 
     <link name="bodyv2">
         <visual>
