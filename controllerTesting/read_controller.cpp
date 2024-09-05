@@ -20,7 +20,7 @@
 using namespace std;
 
 const bool raisimSimulator = true;
-const float rsStep = 1; // Real Time Step (ms)
+const float rsStep = 10; // Real Time Step (ms)
 
 RSTimedLoop rsLoop(rsStep);
 

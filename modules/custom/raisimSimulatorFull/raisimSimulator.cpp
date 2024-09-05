@@ -28,10 +28,10 @@ RaisimSimulator::~RaisimSimulator()
 // Send joint angles to simulation model with Vector3d input
 void RaisimSimulator::setSimAngle(Eigen::VectorXd angs)
 {
-    cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
+    // cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
     // Send joint angles to simulation model
     hexapodLegModel->setGeneralizedCoordinate(angs);
-        cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
+        // cout<<hexapodLegModel->getGeneralizedCoordinate()<<endl;
 
 }
 
@@ -47,6 +47,8 @@ void RaisimSimulator::setSimVelocity(Eigen::VectorXd nextAngles, Eigen::VectorXd
     Eigen::VectorXd currentAngularVelocities = convertVecDynToEigen(currentAngularVelocitiesVecDyn);
 
     Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities;
+    // Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities.setZero();
+
     // Find controlled angular velocities through PI controller
     controlledAngularVelocities.tail(18) = currentAngularVelocities.tail(18) 
                                          + Kp.cwiseProduct(desiredAngularVelocities.tail(18) - currentAngularVelocities.tail(18)) 
@@ -63,7 +65,7 @@ void RaisimSimulator::initialize(const float rsStep)
 {
     // Make World and Size
     world.setTimeStep(rsStep / 1000);
-    auto ground = world.addGround(-0.02);
+    auto ground = world.addGround(-0.5);
 
     // Add Hexapod Leg Model to world
     addModel();
