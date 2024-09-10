@@ -48,7 +48,8 @@ void RaisimSimulator::setSimVelocity(Eigen::VectorXd nextAngles, Eigen::VectorXd
 
     // cout<<"Setting Velocity"<<endl;
 
-    hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
+    // hexapodLegModel->setGeneralizedVelocity(controlledAngularVelocities);
+    hexapodLegModel->setGeneralizedVelocity(desiredAngularVelocities);
 }
 
 // Initilise the Raisim Simulation
@@ -57,7 +58,8 @@ void RaisimSimulator::initialize(const float rsStep)
     // Make World and Size
     world.setTimeStep(rsStep / 1000);
     auto ground = world.addGround(-2);
-
+    
+    world.setGravity(Eigen::Vector3d(0, 0, 0));
     // Add Hexapod Leg Model to world
     addModel();
 

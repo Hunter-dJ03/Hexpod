@@ -105,10 +105,11 @@ void readController(HexapodControl& hexapod) {
                 //     // cout << "Left Joystick Click: " << ev.value << " (" 
                 //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
                 //     break;
-                // case 318: // Right Joystick Click
-                //     // cout << "Right Joystick Click: " << ev.value << " (" 
-                //     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                //     break;
+                case 318: // Right Joystick Click
+                    // cout << "Right Joystick Click: " << ev.value << " (" 
+                    //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
+                    running = false;
+                    break;
                 case 304: // Button A
                     // cout << "Button A: " << ev.value << " (" 
                     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
@@ -160,8 +161,6 @@ void readController(HexapodControl& hexapod) {
                 case 311: // Right Bumper
                     // cout << "Right Bumper: " << ev.value << " (" 
                     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                    
-                    
                     rightBumper = ev.value;
                     break;
                 case 310: // Left Bumper
@@ -188,10 +187,7 @@ void runHexapod(HexapodControl& hexapod) {
     hexapod.rsLoop.updateTimeDelay();
 
     while (running) {
-        // hexapod.rsLoop.realTimeDelay();
-        // hexapod.simulator->server->integrateWorldThreadSafe();
-        // continue;
-        // Get current position
+
         hexapod.currentAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
         hexapod.currentAngularVelocities = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
 
@@ -201,19 +197,40 @@ void runHexapod(HexapodControl& hexapod) {
         hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
 
         if (hexapod.active) {
-            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 * 100;
+            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 ;
             float moveVectorAng = atan2(-inputAxisY, inputAxisX);
 
             // Remap the angle from [-π, π] to [0, 2π]
-            if (moveVectorAng < 0) {
-                moveVectorAng += 2 * M_PI;
-            }
+            // if (moveVectorAng < 0) {
+            //     moveVectorAng += 2 * M_PI;
+            // }
 
             // Set precision and width for consistent output
-            cout << "\rMove Vector: " 
-                    << fixed << setprecision(2) << setw(6) << moveVectorMag << "\% at "
-                    << fixed << setprecision(2) << setw(6) << moveVectorAng 
-                    << flush;
+            
+
+            if (moveVectorMag >= 0.2) {
+                
+                hexapod.walk(moveVectorMag, moveVectorAng);
+
+                cout << "\rMove Vector: " << moveVectorMag *100 << "\% at "<< moveVectorAng << endl;
+            } else {
+                // hexapod.home();
+            }
+
+
+            if (buttonX) {
+                if (dPadX == -1) {
+                    hexapod.jacobianTest(0);
+                } else if (dPadX == 1) {
+                    hexapod.jacobianTest(1);
+                } else if (dPadY == 1) {
+                    hexapod.jacobianTest(2);
+                } else if (dPadY == -1) {
+                    // hexapod.walk(100.0, M_PI_2);
+                }
+            }
+            // hexapod.walk(100.0, M_PI_4);
+
         }
         
         // hexapod.moveToOff();
@@ -234,21 +251,6 @@ void runHexapod(HexapodControl& hexapod) {
            
         } 
         
-
-        // if (buttonA) {
-        //     hexapod.moveToZero();
-        // }
-
-        if (buttonX) {
-            if (dPadX == -1) {
-                hexapod.jacobianTest(0);
-            } else if (dPadX == 1) {
-                hexapod.jacobianTest(1);
-            } else if (dPadY == 1) {
-                hexapod.jacobianTest(2);
-            }
-        }
-
         // if (buttonY) {
         //     cout<<"Current Angles: "<< hexapod.currentAngles<<endl;
         //     cout<<"Desired Angles: "<< hexapod.desiredAngles<<endl;

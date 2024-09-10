@@ -46,6 +46,9 @@ public:
 
     // Velocity Path
     void jacobianTest(const int &style);
+    void walk(double, double);
+
+    bool temp = 0;
 
     int id;
     Eigen::VectorXd pos;
@@ -65,12 +68,23 @@ private:
 
     bool arduinoConnected;
 
-    
+    double standPos[18] = {
+        0.235586, 0.362771, -0.113248,
+        0.382555, 0, -0.113248,
+        0.235586, -0.362771, -0.113248,
+        -0.235586, -0.362771, -0.113248,
+        -0.382555, 0, -0.113248,
+        -0.235586, 0.362771, -0.113248};
 
-    constexpr static float coxaX = 0.044925;
-    constexpr static float coxaZ = 0.01065;
-    constexpr static float femurX = 0.118314;
-    constexpr static float tibiaX = 0.221426;
+    // constexpr static float coxaX = 0.044925;
+    // constexpr static float coxaZ = 0.01065;
+    // constexpr static float femurX = 0.118314;
+    // constexpr static float tibiaX = 0.221426;
+
+    constexpr static float coxaX = 0.044924;
+    constexpr static float coxaZ = 0.010656;
+    constexpr static float femurX = 0.118313;
+    constexpr static float tibiaX = 0.221170;
 
     const vector<int> angleInits = {96, 94, 17};
 
@@ -78,7 +92,8 @@ private:
     const vector<float> femurRotation= {M_PI_2, M_PI_2, M_PI_2, -M_PI_2, -M_PI_2, -M_PI_2};
     const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
 
-    const vector<bool> legStatus = {0,1,0,1,0,1};
+    double lastAngle = 0;
+    vector<bool> standing = {0,1,0,1,0,1};
 };
 
 #endif
