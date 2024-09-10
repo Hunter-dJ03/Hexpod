@@ -233,19 +233,19 @@ void runHexapod(HexapodControl& hexapod) {
 
         }
         
-        // hexapod.moveToOff();
+        // hexapod.jumpToOff();
 
         if (leftBumper && rightBumper) {
 
             if (!hexapod.active) {
                 cout<<endl<<"standing" <<endl;
                 hexapod.active = true;
-                hexapod.stand();
+                hexapod.moveToStand();
                 
             } else {
                 cout<<endl<<"turning off" <<endl;
                 hexapod.active = false;
-                hexapod.off();
+                hexapod.moveToOff();
                 
             }
            

@@ -35,14 +35,14 @@ public:
 
 
     // Instant positions
-    void moveToZero();
-    void moveToBasic();
-    void moveToOff();
-    void moveToCurled();
+    void jumpToZero();
+    void jumpToBasic();
+    void jumpToOff();
+    void jumpToCurled();
 
     // Velocity positions
-    void stand();
-    void off();
+    void moveToStand();
+    void moveToOff();
 
     // Velocity Path
     void jacobianTest(const int &style);
@@ -91,6 +91,9 @@ private:
     const vector<float> bodyLegOffsets = {0.180, 0.130, 0.180, 0.180, 0.130, 0.180};
     const vector<float> femurRotation= {M_PI_2, M_PI_2, M_PI_2, -M_PI_2, -M_PI_2, -M_PI_2};
     const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
+
+    double stepRadius = 0.08;
+    double stepHeight = 0.06;
 
     double lastAngle = 0;
     vector<bool> standing = {0,1,0,1,0,1};
