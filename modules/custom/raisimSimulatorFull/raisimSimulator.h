@@ -22,6 +22,7 @@ public:
 
     unique_ptr<RaisimServer> server;
     shared_ptr<ArticulatedSystem> hexapodLegModel;
+    World world;
 private:
     void initialize(const float rsStep);
     void addModel();
@@ -37,7 +38,7 @@ private:
 
     string URDFName;
     Path binaryPath;
-    World world;
+    
 
 };
 

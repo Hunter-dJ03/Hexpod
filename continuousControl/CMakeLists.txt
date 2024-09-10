@@ -9,16 +9,14 @@ find_package(fmt REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(PythonLibs 3.10 REQUIRED)  # Change Python version as needed
 find_package(raisim CONFIG REQUIRED)
-find_package(SDL2 REQUIRED)
 
 # Include directories
 include_directories(
     ${EIGEN3_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIRS}
     "/home/hunter/Documents/github/importedRepos/matplotlib-cpp"
-    # "/home/hunter/raisim_ws/repos/matplotlib-cpp"
+    "/home/hunter/raisim_ws/repos/matplotlib-cpp"
 )
 
 # Add executables
@@ -28,7 +26,7 @@ add_executable(continuousControl
     hexapod.cpp
     ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
     ../modules/custom/utilities/utils.cpp
-    ../modules/custom/raisimSimulator/raisimSimulator.cpp
+    ../modules/custom/raisimSimulatorFull/raisimSimulator.cpp
 )
 
 # Link libraries to executables
@@ -36,7 +34,6 @@ target_link_libraries(continuousControl PUBLIC
     fmt::fmt
     ${Boost_LIBRARIES}
     ${PYTHON_LIBRARIES}
-    SDL2::SDL2
     raisim::raisim
 )
 
