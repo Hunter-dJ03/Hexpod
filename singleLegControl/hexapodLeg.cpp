@@ -1,7 +1,7 @@
 #include "hexapodLeg.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "../modules/custom/utilities/utils.h"
-#include "../modules/custom/raisimSimulator/raisimSimulator.h"
+#include "../modules/custom/raisimSimulatorLeg/raisimSimulator.h"
 
 #include "matplotlibcpp.h"
 
@@ -23,7 +23,7 @@ HexapodLeg::HexapodLeg(unsigned int id, std::unique_ptr<ArduinoController> ardui
 {
     if (raisimSimulator)
     {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath);
+        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodLeg.urdf");
     }
 }
 
@@ -135,7 +135,7 @@ Eigen::Vector3d HexapodLeg::doBodyIK(float x, float y, float z) const
 
 
 // Perform forward kinematics of the hexapod leg to get end affector position
-Eigen::Vector3d HexapodLeg::doFK() const
+Eigen::Vector3d HexapodLeg::updatePos() const
 {
     // Eigen::Vector3d pos(
     //     cos(currentAngles[0]) * (0.221426 * cos(currentAngles[1] + currentAngles[2]) + 0.1183145 * cos(currentAngles[1]) + 0.044925),
@@ -226,7 +226,7 @@ void HexapodLeg::doJacobianTest(const int &style)
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        nextPos = doFK();
+        nextPos = updatePos();
 
         // Set cycle variables for plotting
         t[i] = i * rsStep;
@@ -358,7 +358,7 @@ void HexapodLeg::doLegIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
-    moveToPos(posik);
+    moveLegToPos(posik);
 
     // Set interpolation scale
     int scale = 160;
@@ -370,21 +370,21 @@ void HexapodLeg::doLegIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -395,21 +395,21 @@ void HexapodLeg::doLegIKTest()
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -420,21 +420,21 @@ void HexapodLeg::doLegIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -447,7 +447,7 @@ void HexapodLeg::doBodyIKTest()
 {
     // Set Start Position
     Eigen::Vector3d posik = {220, 0, -170};
-    moveToPos(posik);
+    moveLegToPos(posik);
 
     // Set interpolation scale
     int scale = 160;
@@ -459,21 +459,21 @@ void HexapodLeg::doBodyIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[0] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[0] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -484,21 +484,21 @@ void HexapodLeg::doBodyIKTest()
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 4; i++)
     {
         posik[1] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[1] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -509,21 +509,21 @@ void HexapodLeg::doBodyIKTest()
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale * 2; i++)
     {
         posik[2] -= 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
     for (int i = 1; i <= scale; i++)
     {
         posik[2] += 0.5;
-        moveToPos(posik);
+        moveLegToPos(posik);
         rsLoop.realTimeDelay();
         ;
     }
@@ -597,12 +597,12 @@ void HexapodLeg::sendAngs()
 }
 
 // Move to Position Overload for 3 individual position input values
-void HexapodLeg::moveToPos(float x, float y, float z)
+void HexapodLeg::moveLegToPos(float x, float y, float z)
 {
     sendPos(x, y, z);
 };
 // Move to Position Overload for 1x3 eigen vector
-void HexapodLeg::moveToPos(const Eigen::Vector3d &pos)
+void HexapodLeg::moveLegToPos(const Eigen::Vector3d &pos)
 {
     // cout <<endl<< pos <<endl;
     sendPos(pos[0], pos[1], pos[2]);

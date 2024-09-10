@@ -3,7 +3,7 @@
 
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
-#include "../modules/custom/raisimSimulator/raisimSimulator.h"
+#include "../modules/custom/raisimSimulatorLeg/raisimSimulator.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -20,12 +20,12 @@ public:
     Eigen::MatrixXd getJacobian() const;
     Eigen::Vector3d doLegIK(float x, float y, float z) const;
     Eigen::Vector3d doBodyIK(float x, float y, float z) const;
-    Eigen::Vector3d doFK() const;
+    Eigen::Vector3d updatePos() const;
 
     void setAngs(float coxa, float femur, float tibia);
     void setAngs(const Eigen::Vector3d& angs);
-    void moveToPos(float x, float y, float z);
-    void moveToPos(const Eigen::Vector3d& pos);
+    void moveLegToPos(float x, float y, float z);
+    void moveLegToPos(const Eigen::Vector3d& pos);
 
     void moveToZero();
     void moveToBasic();
