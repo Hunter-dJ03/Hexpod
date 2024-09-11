@@ -36,6 +36,9 @@ atomic<bool> buttonX(false);
 atomic<int> dPadX(0);
 atomic<int> dPadY(0);
 
+atomic<float> moveVectorMag;
+atomic<float> moveVectorAng;
+
 void signalHandler(int signum) {
     running = false; // Stop the loops
 }
@@ -173,6 +176,15 @@ void readController(HexapodControl& hexapod) {
                     break;
             }
         }
+
+        moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 ;
+        moveVectorAng = atan2(-inputAxisY, inputAxisX);
+
+        if (moveVectorMag <0.2 && hexapod.directed) {
+            hexapod.operationDuration = 0;
+        } 
+
+        hexapod.directed = (moveVectorMag >= 0.2);
     }
 
     close(fd);
@@ -197,25 +209,17 @@ void runHexapod(HexapodControl& hexapod) {
         hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
 
         if (hexapod.active) {
-            float moveVectorMag = Utils::constrain(sqrt(pow(inputAxisX, 2) + pow(inputAxisY, 2)), 0, 2047)   / 2047 ;
-            float moveVectorAng = atan2(-inputAxisY, inputAxisX);
-
-            // Remap the angle from [-π, π] to [0, 2π]
-            // if (moveVectorAng < 0) {
-            //     moveVectorAng += 2 * M_PI;
-            // }
-
-            // Set precision and width for consistent output
-            
 
             if (moveVectorMag >= 0.2) {
                 
                 hexapod.walk(moveVectorMag, moveVectorAng);
 
                 cout << "\rMove Vector: " << moveVectorMag *100 << "\% at "<< moveVectorAng << endl;
-            } else {
-                // hexapod.home();
-            }
+
+                if (moveVectorMag < 0.2) {
+                    hexapod.moveToStand(500);
+                }  
+            } 
 
 
             if (buttonX) {
@@ -225,11 +229,8 @@ void runHexapod(HexapodControl& hexapod) {
                     hexapod.jacobianTest(1);
                 } else if (dPadY == 1) {
                     hexapod.jacobianTest(2);
-                } else if (dPadY == -1) {
-                    // hexapod.walk(100.0, M_PI_2);
                 }
             }
-            // hexapod.walk(100.0, M_PI_4);
 
         }
         
@@ -240,7 +241,7 @@ void runHexapod(HexapodControl& hexapod) {
             if (!hexapod.active) {
                 cout<<endl<<"standing" <<endl;
                 hexapod.active = true;
-                hexapod.moveToStand();
+                hexapod.stand();
                 
             } else {
                 cout<<endl<<"turning off" <<endl;

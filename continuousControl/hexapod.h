@@ -31,7 +31,7 @@ public:
 
     // Velocity set position
     void moveLegToPos(const Eigen::Vector3d& desiredPos, const int legNum);
-    void moveLegsToPos(const Eigen::VectorXd& desiredPos);
+    void moveLegsToPos(const Eigen::VectorXd& desiredPos, float dur);
 
 
     // Instant positions
@@ -41,14 +41,15 @@ public:
     void jumpToCurled();
 
     // Velocity positions
-    void moveToStand();
+    void stand();
+    void moveToStand(float dur);
     void moveToOff();
 
     // Velocity Path
     void jacobianTest(const int &style);
     void walk(double, double);
 
-    bool temp = 0;
+    bool directed = 0;
 
     int id;
     Eigen::VectorXd pos;

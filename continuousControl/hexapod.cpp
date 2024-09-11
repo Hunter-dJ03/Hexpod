@@ -201,7 +201,7 @@ void HexapodControl::moveToOff()
     legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legOffPos);
+    moveLegsToPos(legOffPos, 1000);
 
     // Desired position double for each leg endpoint in off position
     double tempPosB[18] = {
@@ -216,11 +216,11 @@ void HexapodControl::moveToOff()
     legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosB, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legOffPos);
+    moveLegsToPos(legOffPos, 1000);
 }
 
 // Move to initial position for walk cycle
-void HexapodControl::moveToStand()
+void HexapodControl::stand()
 {
     // Blank VectorXd for desired positions
     Eigen::VectorXd legstandPos(18);
@@ -238,16 +238,25 @@ void HexapodControl::moveToStand()
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legstandPos);
+    moveLegsToPos(legstandPos, 1000);
+
+    moveToStand(1000);
+}
+
+// Move to initial position for walk cycle
+void HexapodControl::moveToStand(float dur)
+{
+    // Blank VectorXd for desired positions
+    Eigen::VectorXd legstandPos(18);
 
     // Map stand position double to desired pos Eigen VectorXd
     legstandPos = Eigen::Map<Eigen::VectorXd>(standPos, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legstandPos);
+    moveLegsToPos(legstandPos, dur);
 }
 
-void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos)
+void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 {
     // Variables for the mathematical operations
     Eigen::Vector3d desiredSpatialVelocity;
@@ -260,9 +269,6 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos)
 
     // Calculate position offset between desired position and current pos
     posOffset = desiredPos - pos;
-
-    // Set operation duration
-    int dur = 1000;
 
     // Simulation Cycle
     for (int i = 0; i < dur / rsStep; i++)
@@ -604,7 +610,7 @@ void HexapodControl::jacobianTest(const int &style)
 }
 
 void HexapodControl::walk(double vel, double ang)
-{
+{    
     // Reverse step stance if direction change from last step is greater than +- pi/2
     // Normalize the angles to the range -pi to pi
     auto normalizeAngle = [](double angle) -> double {
@@ -612,6 +618,10 @@ void HexapodControl::walk(double vel, double ang)
         while (angle < -M_PI) angle += 2 * M_PI;
         return angle;
     };
+
+    if (vel <= 0.2) {
+        ang = -lastAngle;
+    }
 
     // Normalize both angles to the -pi to pi range
     ang = normalizeAngle(ang);
@@ -639,9 +649,16 @@ void HexapodControl::walk(double vel, double ang)
 
     // For each leg (Could be changed to per stance if not single leg with angle normalisation to reduce operation time)
     for (size_t j = 0; j<6; j++) {
-        // Calculate desired position for next step disregarding current position
-        desiredPos[j*3] = standPos[j*3] - stepRadius * cos(ang) * (standing[j] * 2 - 1);
-        desiredPos[j*3+1] = standPos[j*3+1] - stepRadius * sin(ang) * (standing[j] * 2 - 1);
+
+        if (vel <= 0.2) {
+            desiredPos[j*3] = standPos[j*3];
+            desiredPos[j*3+1] = standPos[j*3+1];
+        } else {
+            // Calculate desired position for next step disregarding current position
+            desiredPos[j*3] = standPos[j*3] - stepRadius * cos(ang) * (standing[j] * 2 - 1);
+            desiredPos[j*3+1] = standPos[j*3+1] - stepRadius * sin(ang) * (standing[j] * 2 - 1);
+        }
+        
     
         // Calculate step offset from current position
         double x = desiredPos[j*3] - pos[j*3];
