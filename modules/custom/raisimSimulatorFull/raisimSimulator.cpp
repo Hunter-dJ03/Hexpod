@@ -42,11 +42,17 @@ void RaisimSimulator::setSimVelocity(Eigen::VectorXd nextAngles, Eigen::VectorXd
     // Get Current Angles
     raisim::VecDyn currentAnglesVecDyn = hexapodLegModel->getGeneralizedCoordinate();
     raisim::VecDyn currentAngularVelocitiesVecDyn = hexapodLegModel->getGeneralizedVelocity();
+    raisim::VecDyn currentAngularAccelerationsVecDyn = hexapodLegModel->getGeneralizedAcceleration();
     // Convert raisim::VecDyn type to Eigen::Vector3d
     Eigen::VectorXd currentAngles = convertVecDynToEigen(currentAnglesVecDyn);
     Eigen::VectorXd currentAngularVelocities = convertVecDynToEigen(currentAngularVelocitiesVecDyn);
+    Eigen::VectorXd currentAngularAccelerations= convertVecDynToEigen(currentAngularAccelerationsVecDyn);
 
     Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities;
+
+    cout <<currentAngularVelocities << endl;
+
+    // controlledAngularVelocities.head(6) += currentAngularAccelerations.head(6) * rsStep;
     // Eigen::VectorXd controlledAngularVelocities = currentAngularVelocities.setZero();
 
     // Find controlled angular velocities through PI controller
@@ -87,6 +93,9 @@ void RaisimSimulator::addModel()
     // Add the model to the world
     hexapodLegModel = shared_ptr<ArticulatedSystem>(world.addArticulatedSystem(binaryPath.getDirectory() + "/models/hexapod/urdf/" + URDFName));
     hexapodLegModel->setName("HexapodModel");
+
+    hexapodLegModel->setIntegrationScheme(raisim::ArticulatedSystem::IntegrationScheme::SEMI_IMPLICIT);
+    hexapodLegModel->setControlMode(raisim::ControlMode::FORCE_AND_TORQUE);
 
     // Remove Collision Meshes
     // for (int i = 0; i <= 3; ++i)
