@@ -57,6 +57,7 @@ public:
     Eigen::VectorXd currentAngularVelocities;
     Eigen::VectorXd desiredAngles;
 
+    double moveVectorMag;
     RSTimedLoop& rsLoop;
     unique_ptr<RaisimSimulator> simulator;
 

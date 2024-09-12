@@ -619,7 +619,9 @@ void HexapodControl::walk(double vel, double ang)
         return angle;
     };
 
-    if (vel <= 0.2) {
+    vel = moveVectorMag;
+
+    if (vel <= 0.05) {
         ang = -lastAngle;
     }
 
@@ -640,9 +642,6 @@ void HexapodControl::walk(double vel, double ang)
     // Update lastAngle to the current angle for future comparisons
     lastAngle = ang;
 
-    // Full step duration (support and sweep)
-    double T = 2.0; // S
-
     double desiredPos[18];         // Step Endpoint
     double horizontalDistance[6];  // Array to store horizontal distances
     double angle[6];               // Array to store angles
@@ -650,7 +649,7 @@ void HexapodControl::walk(double vel, double ang)
     // For each leg (Could be changed to per stance if not single leg with angle normalisation to reduce operation time)
     for (size_t j = 0; j<6; j++) {
 
-        if (vel <= 0.2) {
+        if (vel <= 0.05) {
             desiredPos[j*3] = standPos[j*3];
             desiredPos[j*3+1] = standPos[j*3+1];
         } else {
@@ -671,12 +670,11 @@ void HexapodControl::walk(double vel, double ang)
         angle[j] = std::atan2(y, x);
     }
 
-    // Time counter
-    double t = 0.0;
+    // Full step duration (support and sweep)
+    double T = 2; // S
 
-    // Trajectory parameters
-    vector<double> a = {-1.0 / 2.0, -2.0 / T, 0, 160.0 / pow(T, 3), -480.0 / pow(T, 4), 384.0 / pow(T, 5), 0};
-    vector<double> b = {0, 0, 0, 512.0 / pow(T, 3), -3072.0 / pow(T, 4), 6144.0 / pow(T, 5), -4096.0 / pow(T, 6)};
+    // Time counter
+    double t = 0.0;   
 
     // Create vector variables for control calculations
     Eigen::Vector3d desiredSpatialVelocity;
@@ -691,14 +689,38 @@ void HexapodControl::walk(double vel, double ang)
     // Calculate expected duration fo operation
     operationDuration = T/2 * 1000 / rsStep;
 
+    // Init proportional speed control variables
+    double rat1;
+    double rat2;
+
     // Simulation Cycle
-    for (int i = 0; i < T/2 * 1000 / rsStep; i++)
+    // for (int i = 0; i < T/2 * 1000 / rsStep; i++)
+    while (true)
     {
+
+        // Calculate proportional speed control
+        if (moveVectorMag > 0.05) {
+            // Operation cownt down ratio
+            rat1 = operationDuration / (T/2 * 1000 / rsStep);   
+            // Completed Gait Cycle ratio
+            rat2 = t/T; 
+            // Recalculate full time based on new velocity
+            T = 2/moveVectorMag;  
+            // Adjust real time counter value to ensure trajectory equations remain at correct stage
+            t = rat2*T; 
+            // adjust operation duration to for new velocity
+            operationDuration =  (T/2 * 1000 / rsStep) * rat1; 
+        }
+        
+        // Trajectory parameters
+        vector<double> a = {-1.0 / 2.0, -2.0 / T, 0, 160.0 / pow(T, 3), -480.0 / pow(T, 4), 384.0 / pow(T, 5), 0};
+        vector<double> b = {0, 0, 0, 512.0 / pow(T, 3), -3072.0 / pow(T, 4), 6144.0 / pow(T, 5), -4096.0 / pow(T, 6)};
+
         // Incremement time counter
         t+= 0.001 * rsStep;
 
         // Operation stop interrupt
-        if (operationDuration < 0)
+        if (operationDuration <= 0)
         {
             break;
         }
@@ -758,6 +780,8 @@ void HexapodControl::walk(double vel, double ang)
         // Decrement operation duration for limit
         operationDuration--;
     }
+
+    operationDuration = 0;
 
     // Set current angles as the desired holding angles when not performing operation
     desiredAngles = currentAngles;
