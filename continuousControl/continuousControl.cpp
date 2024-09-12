@@ -44,12 +44,19 @@ void signalHandler(int signum) {
 }
 
 void readController(HexapodControl& hexapod) {
-    const char *device = "/dev/input/event20";  // Using event20 as specified
-    int fd = open(device, O_RDONLY);    
-    
-    if (fd == -1) {
-        cerr << "Failed to open input device." << endl;
-        return;
+    const char *device = "/dev/input/event21";  // Using event20 as specified
+    int fd;
+
+    // Loop until the device is successfully opened
+    while (true) {
+        fd = open(device, O_RDONLY);
+
+        if (fd == -1) {
+            cerr << "Failed to open input device. Retrying..." << endl;
+            sleep(1);  // Wait for 1 second before trying again
+        } else {
+            break;  // Exit loop when successfully opened
+        }
     }
 
     struct input_event ev;
@@ -303,6 +310,9 @@ int main(int argc, char* argv[]) {
     }
     // Create Hexapod 
     HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
+
+    hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
+
     // Start the controller input reading in a separate thread
     thread input_thread(readController, ref(hexapod));
     // Register signal handler
