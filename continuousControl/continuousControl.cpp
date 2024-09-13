@@ -207,6 +207,8 @@ void readController(HexapodControl& hexapod) {
         // Store vector magnitude in hexapod class
         hexapod.moveVectorMag = moveVectorMag;
 
+        // hexapod.di
+
         // Check if moveVectorMag is less than 0.05
         if (moveVectorMag < 0.05) {
             // Increment the counter if below 0.05
@@ -217,7 +219,13 @@ void readController(HexapodControl& hexapod) {
         }
 
         // Handle low velocity magnitude to allow joystick parsing quickly through zero zone and distinguish from joystick release / stop
-        hexapod.operationDuration *= (lowVelCounter < 6);
+        // hexapod.operationDuration *= (lowVelCounter < 6);
+
+        hexapod.directed = (lowVelCounter < 6);
+
+        if (moveVectorMag < 0.05 && !hexapod.directed && lowVelCounter < 20) {
+            hexapod.operationDuration = 0;
+        } 
     }
 
     // close the device connection
@@ -230,20 +238,16 @@ void runHexapod(HexapodControl& hexapod) {
     // Record start time
     auto startTime = chrono::high_resolution_clock::now();
 
-    // Get Start coordinate
-    hexapod.desiredAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
-    
     // Set real time loop next time
     hexapod.rsLoop.updateTimeDelay();
 
     // Simulation Loop
     while (running) {
-        // Get current angles and velocities
-        hexapod.currentAngles = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedCoordinate());
-        hexapod.currentAngularVelocities = hexapod.simulator->convertVecDynToEigen(hexapod.simulator->hexapodLegModel->getGeneralizedVelocity());
-
+        
         // Preset holding position
-        hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
+        if (hexapod.simulator) {
+            hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
+        }
 
         // Update the current position
         hexapod.updatePos();
@@ -269,10 +273,13 @@ void runHexapod(HexapodControl& hexapod) {
             if (buttonX) {
                 if (dPadX == -1) {
                     hexapod.jacobianTest(0);
+                    hexapod.moveToStand(500);
                 } else if (dPadX == 1) {
                     hexapod.jacobianTest(1);
+                    hexapod.moveToStand(500);
                 } else if (dPadY == 1) {
                     hexapod.jacobianTest(2);
+                    hexapod.moveToStand(500);
                 }
             }
 
@@ -304,7 +311,10 @@ void runHexapod(HexapodControl& hexapod) {
 
         // Real time delay and server integration;
         hexapod.rsLoop.realTimeDelay();
-        hexapod.simulator->server->integrateWorldThreadSafe();
+
+        if (hexapod.simulator) {
+            hexapod.simulator->server->integrateWorldThreadSafe();
+        }
     }
 
     // Calculate and display the duration
@@ -312,8 +322,10 @@ void runHexapod(HexapodControl& hexapod) {
     chrono::duration<double> elapsed = endTime - startTime;
     cout << "\nrunHexapod loop duration: " << elapsed.count() << " seconds." << endl;
 
-    // Close the raisim simulator
-    hexapod.simulator->server->killServer();
+    if (hexapod.simulator) {
+        // Close the raisim simulator
+        hexapod.simulator->server->killServer();
+    }
 }
 
 // initial function
@@ -350,8 +362,10 @@ int main(int argc, char* argv[]) {
     // Create Hexapod 
     HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
 
+    if (hexapod.simulator) {
     // Set simulation view to the hexapod
-    hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
+        hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
+    }
 
     // Start the controller input reading in a separate thread
     thread input_thread(readController, ref(hexapod));

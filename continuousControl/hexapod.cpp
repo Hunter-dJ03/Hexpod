@@ -34,6 +34,19 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     desiredAngles = Eigen::VectorXd(18);
     currentAngularVelocities = Eigen::VectorXd(18);
 
+    currentAngularVelocities.setZero();
+    
+    // Desired angles array for each leg
+    float baseAngs[3] = {0, 2.35619, 3.52557};
+
+    // Move angle arrays to eigen vector
+    for (int i = 0; i < 18; ++i)
+    {
+        currentAngles[i] = baseAngs[i % 3]; // Repeat the set of 3 angles
+    }
+
+    desiredAngles = currentAngles;
+
     // Set hexapod active level (deployed or not)
     active = false;
 
@@ -294,8 +307,11 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
-        // Send Velocities to the simulator
-        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+
+        if (simulator) {
+            // Send Velocities to the simulator
+            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        }
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -303,8 +319,11 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
-        // Integrate the Simulator server
-        simulator->server->integrateWorldThreadSafe();
+
+        if (simulator) {
+            // Integrate the Simulator server
+            simulator->server->integrateWorldThreadSafe();
+        }
     }
 
     // Set current angles as the desired holding angles when not performing operation
@@ -503,9 +522,9 @@ void HexapodControl::sendAngs()
 void HexapodControl::jacobianTest(const int &style)
 {
     // Test Control Variables
-    float radius = 0.06; // meters
-    double period = 2;   // secs
-    double cycles = 5;
+    float radius = 0.04; // meters
+    double period = 5;   // secs
+    double cycles = 2;
 
     // Find Duration
     int dur = period * cycles * 1000; // ms
@@ -519,31 +538,37 @@ void HexapodControl::jacobianTest(const int &style)
     Eigen::MatrixXd jacobianPseudoInverse;
 
     // Calculate expected operation duration
-    operationDuration = dur / rsStep + 2000 / rsStep;
+    operationDuration = dur / rsStep + 0 / rsStep;
 
     // Simulation Cycle
-    for (int i = 0; i <= dur / rsStep + 2000 / rsStep; i++)
+    for (int i = 0; i <= dur / rsStep + 0 / rsStep; i++)
     {
         // Operation stop interrupt
         if (operationDuration < 0)
         {
+            cout << "exiting" <<endl;
             break;
         }
 
-        // Hold position for 2 seconds
-        if (i < 2000 / rsStep)
-        {
-            // Set sim velocity to 0
-            simulator->setSimVelocity(desiredAngles, Eigen::VectorXd::Zero(18));
-            // Implement Real time delay
-            rsLoop.realTimeDelay();
-            // Integrate the Simulator server
-            simulator->server->integrateWorldThreadSafe();
-            // Decrement operation duration for limit
-            operationDuration--;
-            // Skip remaining loop
-            continue;
-        }
+        // Hold position for 1 seconds
+        // if (i < 1000 / rsStep)
+        // {
+        //     if (simulator) {
+        //         // Set sim velocity to 0
+        //         simulator->setSimVelocity(desiredAngles, Eigen::VectorXd::Zero(18));
+        //     }
+        //     // Implement Real time delay
+        //     rsLoop.realTimeDelay();
+
+        //     if (simulator) {
+        //         // Integrate the Simulator server
+        //         simulator->server->integrateWorldThreadSafe();
+        //     }
+        //     // Decrement operation duration for limit
+        //     operationDuration--;
+        //     // Skip remaining loop
+        //     continue;
+        // }
 
         // Calculate control angular velocities per leg
         for (int legNum = 0; legNum < 6; legNum++)
@@ -551,23 +576,23 @@ void HexapodControl::jacobianTest(const int &style)
             // Determine jacobian test style
             if (style == 0)
             {
-                // Jacobian test in X-Y plane
+                // Jacobian test in Y-Z plane
                 desiredSpatialVelocity << 0,
                     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
-                    -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+                    -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000))  * ((i < (0.5 * dur / rsStep)) * 2 -1);
             }
             else if (style == 1)
             {
                 // Jacobian test in X-Z plane
-                desiredSpatialVelocity << radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                desiredSpatialVelocity << radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000)) * ((i < (0.5 * dur / rsStep)) * 2 -1),
                     0,
-                    -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000));
+                    -radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000));
             }
             else if (style == 2)
             {
-                // Jacobian test in Y-Z plane
+                // Jacobian test in X-Y plane
                 desiredSpatialVelocity << radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
-                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000)),
+                    radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000))  * ((i < (0.5 * dur / rsStep)) * 2 -1),
                     0;
             }
 
@@ -589,8 +614,10 @@ void HexapodControl::jacobianTest(const int &style)
         // Send the angles to the arduino and simulation as desired
         // setAngs(nextAngles);
 
-        // Send Velocities to the simulator
-        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        if (simulator) {
+            // Send Velocities to the simulator
+            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        }
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -598,8 +625,11 @@ void HexapodControl::jacobianTest(const int &style)
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
-        // Integrate the Simulator server
-        simulator->server->integrateWorldThreadSafe();
+
+        if (simulator) {
+            // Integrate the Simulator server
+            simulator->server->integrateWorldThreadSafe();
+        }
 
         // Decrement operation duration for limit
         operationDuration--;
@@ -710,6 +740,8 @@ void HexapodControl::walk(double vel, double ang)
             t = rat2*T; 
             // adjust operation duration to for new velocity
             operationDuration =  (T/2 * 1000 / rsStep) * rat1; 
+
+            cout <<operationDuration << endl;
         }
         
         // Trajectory parameters
@@ -765,8 +797,10 @@ void HexapodControl::walk(double vel, double ang)
         // Send the angles to the arduino and simulation as desired
         // setAngs(nextAngles);
 
-        // Send Velocities to the simulator
-        simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        if (simulator) {
+            // Send Velocities to the simulator
+            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+        }
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -774,8 +808,11 @@ void HexapodControl::walk(double vel, double ang)
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
-        // Integrate the Simulator server
-        simulator->server->integrateWorldThreadSafe();
+
+        if (simulator) {
+            // Integrate the Simulator server
+            simulator->server->integrateWorldThreadSafe();
+        }
 
         // Decrement operation duration for limit
         operationDuration--;
