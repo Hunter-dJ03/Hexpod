@@ -51,7 +51,9 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     active = false;
 
     // Jump to starting curled position
-    jumpToCurled();
+    // jumpToCurled();
+
+    simulator->setSimAngle(currentAngles);
 }
 
 // Class destructor
@@ -253,7 +255,7 @@ void HexapodControl::stand()
     // Move legs to the desired position
     moveLegsToPos(legstandPos, 1000);
 
-    moveToStand(1000);
+    moveToStand(standDuration);
 }
 
 // Move to initial position for walk cycle
@@ -319,6 +321,8 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 
         // Implement Real time delay
         rsLoop.realTimeDelay();
+
+        sendAngs();
 
         if (simulator) {
             // Integrate the Simulator server
@@ -414,7 +418,18 @@ void HexapodControl::sendAngs()
     // For Sending to Arduino
     if (arduinoConnected)
     {
-        std::vector<std::bitset<11>> angleBinaryRepresentation(modifiedAngs.size());
+        cout <<endl;
+
+        // std::vector<std::bitset<bitLength>> angleBinaryRepresentation(modifiedAngs.size());
+
+        const double scale_factor = 1000.0;
+
+        // Create packet: start byte, data, and checksum
+        std::vector<uint8_t> packet;
+        
+        // Start byte (e.g., 0xA5)
+        packet.push_back(0xA5);
+
         for (int i = 0; i < modifiedAngs.size(); i++)
         {
             double baseValue = modifiedAngs[i] * 180 / M_PI;
@@ -434,12 +449,12 @@ void HexapodControl::sendAngs()
             {
                 if (baseValue > angleInits[i % 3] + 60)
                 {
-                    cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] + 60 << endl;
+                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] + 60 << endl;
                     baseValue = angleInits[i % 3] + 60;
                 }
                 else if (baseValue < angleInits[i % 3] - 60)
                 {
-                    cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] - 60 << endl;
+                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] - 60 << endl;
                     baseValue = angleInits[i % 3] - 60;
                 }
             }
@@ -447,12 +462,12 @@ void HexapodControl::sendAngs()
             {
                 if (baseValue > 180)
                 {
-                    cout << "Femur out of range, " << baseValue << ", capping arduino at " << 180 << endl;
+                    // cout << "Femur out of range, " << baseValue << ", capping arduino at " << 180 << endl;
                     baseValue = 180;
                 }
                 else if (baseValue < 0)
                 {
-                    cout << "Femur out of range, " << baseValue << ", capping arduino at " << 0 << endl;
+                    // cout << "Femur out of range, " << baseValue << ", capping arduino at " << 0 << endl;
                     baseValue = 0;
                 }
             }
@@ -460,70 +475,72 @@ void HexapodControl::sendAngs()
             {
                 if (baseValue > 180)
                 {
-                    cout << "Tibia out of range, " << baseValue << ", capping arduino at " << 180 << endl;
+                    // cout << "Tibia out of range, " << baseValue << ", capping arduino at " << 180 << endl;
                     baseValue = 180;
                 }
                 else if (baseValue < 0)
                 {
-                    cout << "Tibia out of range, " << baseValue << ", capping arduino at " << 0 << endl;
+                    // cout << "Tibia out of range, " << baseValue << ", capping arduino at " << 0 << endl;
                     baseValue = 0;
                 }
             }
 
-            cout << baseValue << endl;
+            
 
-            bitset<11> bit(static_cast<uint16_t>(Utils::toFixedPoint(baseValue, 1)));
-            angleBinaryRepresentation[i] = bit;
+            uint16_t scaled_value = static_cast<uint16_t>(round(baseValue * scale_factor));
+
+            cout << scaled_value << endl;
+
+            // Optional: Ensure that the scaled value is within the 16-bit range
+            scaled_value = std::min(scaled_value, static_cast<uint16_t>(65535));
+
+            // High byte (first 8 bits)
+            packet.push_back((scaled_value >> 8) & 0xFF);
+
+            // Low byte (last 8 bits)
+            packet.push_back(scaled_value & 0xFF);
+            
         }
-
-        // for (const auto& byte : angleBinaryRepresentation) {
-        //     std::cout << std::bitset<11>(byte) << " ";
-        // }
-        // cout<<endl;
-
-        size_t totalBits = angleBinaryRepresentation.size() * 11;
-        size_t totalBytes = (totalBits + 7) / 8; // Round up to the nearest byte
-
-        // Create a vector to hold the resulting bytes
-        std::vector<uint8_t> result(totalBytes, 0);
-
-        // Iterate through the bitsets and pack them into the result vector
-        size_t bitIndex = 0;
-        for (const auto &bitset : angleBinaryRepresentation)
-        {
-            for (size_t i = 0; i < 11; ++i, ++bitIndex)
-            {
-                if (bitset[i])
-                {
-                    result[bitIndex / 8] |= (1 << (bitIndex % 8));
-                }
-            }
+        
+        // Compute the checksum (sum of all data bytes, modulo 256)
+        uint8_t checksum = 0;
+        for (size_t i = 1; i < packet.size(); ++i) {  // Skip the start byte
+            checksum += packet[i];
         }
+        checksum &= 0xFF;
 
-        // for (const auto& byte : result) {
-        //     std::cout << std::bitset<8>(byte) << " ";
+        // Append checksum to packet
+        packet.push_back(checksum);
+
+            // for (const auto& byte : result) {
+            //     std::cout << std::bitset<8>(byte) << " ";
+            // }
+            // cout<<endl;
+
+        // std::cout <<endl<< "Sending packet: ";
+        // for (auto byte : packet) {
+        //     std::cout << std::hex << static_cast<int>(byte) << " ";
         // }
-        // cout<<endl;
 
-        arduino->sendBitSetCommand(result);
+        arduino->sendPacket(packet);
     }
 
     // For simulator (NOT IDEAL)
-    if (simulator)
-    {
-        // Set Simulation angles (NOT IDEAL) 
-        simulator->setSimAngle(modifiedAngs);
+    // if (simulator)
+    // {
+    //     // Set Simulation angles (NOT IDEAL) 
+    //     simulator->setSimAngle(modifiedAngs);
 
-        // Set current angles as the desired holding angles when not performing operation
-        desiredAngles = modifiedAngs;
-    }
+    //     // Set current angles as the desired holding angles when not performing operation
+    //     desiredAngles = modifiedAngs;
+    // }
 }
 
 void HexapodControl::jacobianTest(const int &style)
 {
     // Test Control Variables
     float radius = 0.04; // meters
-    double period = 5;   // secs
+    double period = jacDuration/1000;   // secs
     double cycles = 2;
 
     // Find Duration
@@ -576,24 +593,39 @@ void HexapodControl::jacobianTest(const int &style)
             // Determine jacobian test style
             if (style == 0)
             {
-                // Jacobian test in Y-Z plane
+                // Circle Jacobian test in Y-Z plane
                 desiredSpatialVelocity << 0,
                     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
                     -radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000))  * ((i < (0.5 * dur / rsStep)) * 2 -1);
+
+                // Inf Jacobian test in Y-Z plane
+                // desiredSpatialVelocity << 0,
+                //     radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                //     -radius / period * M_PI * sin(4 / period * M_PI * (i) * (rsStep / 1000));
             }
             else if (style == 1)
             {
-                // Jacobian test in X-Z plane
+                // Circle Jacobian test in X-Z plane
                 desiredSpatialVelocity << radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000)) * ((i < (0.5 * dur / rsStep)) * 2 -1),
                     0,
                     -radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000));
+
+                //  Inf Jacobian test in X-Z plane
+                // desiredSpatialVelocity << radius / period * M_PI * sin(4 / period * M_PI * (i) * (rsStep / 1000)),
+                //     0,
+                //     -radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000));
             }
             else if (style == 2)
             {
-                // Jacobian test in X-Y plane
+                // Circle Jacobian test in X-Y plane
                 desiredSpatialVelocity << radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
                     radius * 2 / period * M_PI * sin(2 / period * M_PI * (i) * (rsStep / 1000))  * ((i < (0.5 * dur / rsStep)) * 2 -1),
                     0;
+
+                // Inf Jacobian test in X-Y plane
+                // desiredSpatialVelocity << radius * 2 / period * M_PI * cos(2 / period * M_PI * (i) * (rsStep / 1000)),
+                //     radius / period * M_PI * sin(4 / period * M_PI * (i) * (rsStep / 1000)),
+                //     0;
             }
 
             // Velocity Control Calculations
@@ -612,7 +644,7 @@ void HexapodControl::jacobianTest(const int &style)
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
 
         // Send the angles to the arduino and simulation as desired
-        // setAngs(nextAngles);
+        setAngs(nextAngles);
 
         if (simulator) {
             // Send Velocities to the simulator
@@ -701,7 +733,7 @@ void HexapodControl::walk(double vel, double ang)
     }
 
     // Full step duration (support and sweep)
-    double T = 2; // S
+    double T = minStepDuration/1000; // S
 
     // Time counter
     double t = 0.0;   
@@ -716,7 +748,7 @@ void HexapodControl::walk(double vel, double ang)
     double horizontalMovement;
     double verticalMovement;
 
-    // Calculate expected duration fo operation
+    // Calculate expected duration for operation
     operationDuration = T/2 * 1000 / rsStep;
 
     // Init proportional speed control variables
@@ -735,7 +767,7 @@ void HexapodControl::walk(double vel, double ang)
             // Completed Gait Cycle ratio
             rat2 = t/T; 
             // Recalculate full time based on new velocity
-            T = 2/moveVectorMag;  
+            T = (minStepDuration/1000)/moveVectorMag;  
             // Adjust real time counter value to ensure trajectory equations remain at correct stage
             t = rat2*T; 
             // adjust operation duration to for new velocity
@@ -795,7 +827,7 @@ void HexapodControl::walk(double vel, double ang)
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
 
         // Send the angles to the arduino and simulation as desired
-        // setAngs(nextAngles);
+        setAngs(nextAngles);
 
         if (simulator) {
             // Send Velocities to the simulator

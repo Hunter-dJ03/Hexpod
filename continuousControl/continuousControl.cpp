@@ -21,7 +21,7 @@ using namespace std;
 
 // Operation Parameters
 const bool raisimSimulator = true;
-const float rsStep = 10; // Real Time Step (ms)
+const float rsStep = 5; // Real Time Step (ms)
 
 // Real Time Loop initialisation
 RSTimedLoop rsLoop(rsStep);
@@ -48,7 +48,7 @@ void signalHandler(int signum) {
 
 // Function for reading from controller in new thread
 void readController(HexapodControl& hexapod) {
-    const char *device = "/dev/input/event21";  // Input event stream for contorller (might need to adjust for when event changes )
+    const char *device = "/dev/input/event20";  // Input event stream for contorller (might need to adjust for when event changes )
     
     // Controller connection status
     int fd;
@@ -253,7 +253,7 @@ void runHexapod(HexapodControl& hexapod) {
         hexapod.updatePos();
         
         // If the hexapod has been deployed
-        if (hexapod.active) {
+        if (hexapod.active) {   
 
             // Handle walking
             if (moveVectorMag >= 0.05) {
@@ -265,7 +265,7 @@ void runHexapod(HexapodControl& hexapod) {
 
                 // Move back to stand position
                 if (moveVectorMag < 0.05) {
-                    hexapod.moveToStand(500);
+                    hexapod.moveToStand(hexapod.standDuration);
                 }  
             } 
 
@@ -273,13 +273,13 @@ void runHexapod(HexapodControl& hexapod) {
             if (buttonX) {
                 if (dPadX == -1) {
                     hexapod.jacobianTest(0);
-                    hexapod.moveToStand(500);
+                    hexapod.moveToStand(hexapod.standDuration);
                 } else if (dPadX == 1) {
                     hexapod.jacobianTest(1);
-                    hexapod.moveToStand(500);
+                    hexapod.moveToStand(hexapod.standDuration);
                 } else if (dPadY == 1) {
                     hexapod.jacobianTest(2);
-                    hexapod.moveToStand(500);
+                    hexapod.moveToStand(hexapod.standDuration);
                 }
             }
 
@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     // Handle arduino connection
     if (arduinoPort) {
         // Set the Arduino Controller up with port and abud rate
-        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 921600);
+        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 230400);
 
         cout << "Arduino connected." << endl;
         

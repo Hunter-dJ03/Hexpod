@@ -61,6 +61,10 @@ public:
     RSTimedLoop& rsLoop;
     unique_ptr<RaisimSimulator> simulator;
 
+    double minStepDuration = 2000;
+    double jacDuration = 5000;
+    double standDuration = 1000;
+
 private:
     float rsStep;
     void sendAngs();
