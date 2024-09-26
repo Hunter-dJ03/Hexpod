@@ -4,7 +4,7 @@ const byte PACKET_SIZE = 37;  // 1 start byte + 36 bytes of data (18 x 16-bit) +
 byte buffer[PACKET_SIZE];
 
 void setup() {
-  Serial.begin(230400);  // Use stable baud rate
+  Serial.begin(921600);  // Use stable baud rate
   delay(800);  // Short delay for initialization
 }
 

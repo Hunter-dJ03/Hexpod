@@ -8,10 +8,20 @@
   #define DEBUG_PRINTLN(x) Serial.println(x)
   #define DEBUG_PRINT(x) Serial.print(x)
   #define DEBUG_WRITE(x) Serial.write(x)
+
+  unsigned long debugStartTime = 0;
+  #define DEBUG_TIME_START() debugStartTime = micros()
+  #define DEBUG_TIME_END(message) \
+    Serial.print(message); \
+    Serial.print(": "); \
+    Serial.println(micros() - debugStartTime); 
 #else
   #define DEBUG_PRINT(x)
   #define DEBUG_WRITE(x)
   #define DEBUG_PRINTLN(x)
+
+  #define DEBUG_TIME_START()
+  #define DEBUG_TIME_END(message)
 #endif
 
 const byte PACKET_SIZE = 38;  // 1 start byte + 36 bytes of data (18 x 16-bit) + 2 checksum
@@ -102,8 +112,8 @@ void updateServos(uint16_t values[18]) {
 // }
 
 void setup() {
-  // Set the baud rate to something more stable like 115200 or 230400
-  Serial.begin(230400);  // Lower the baud rate to avoid overrunning the Arduino UART
+  // Set the baud rate to something more stable like 115200 or 921600
+  Serial.begin(921600);  // Lower the baud rate to avoid overrunning the Arduino UART
 
   initLegs();  // Initialize servos or other peripherals
   
@@ -115,6 +125,7 @@ void loop() {
   if (Serial.available()) {
     // Look for the start byte
     if (Serial.read() == 0xA5) {
+      DEBUG_TIME_START();
       // Now read the rest of the packet
       if (Serial.readBytes(buffer + 1, PACKET_SIZE - 1) == (PACKET_SIZE - 1)) {
         // Extract the 18 16-bit values
@@ -148,6 +159,7 @@ void loop() {
       } else {
         DEBUG_PRINTLN("Incomplete packet");
       }
+      DEBUG_TIME_END("Time taken");
     }
   }
 }

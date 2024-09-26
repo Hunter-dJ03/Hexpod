@@ -346,7 +346,7 @@ int main(int argc, char* argv[]) {
     // Handle arduino connection
     if (arduinoPort) {
         // Set the Arduino Controller up with port and abud rate
-        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 230400);
+        arduino = make_unique<ArduinoController>("/dev/ttyACM0", 921600);
 
         cout << "Arduino connected." << endl;
         

@@ -14,7 +14,7 @@ void readAndPrintData(ArduinoController& arduino) {
 
 int main() {
     try {
-        ArduinoController arduino("/dev/ttyACM0", 230400);
+        ArduinoController arduino("/dev/ttyACM0", 921600);
         readAndPrintData(arduino);
     } catch (const std::exception& e) {
         cerr << "Error: " << e.what() << endl;
