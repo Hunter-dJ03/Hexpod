@@ -92,7 +92,9 @@ private:
     constexpr static float femurX = 0.118313;
     constexpr static float tibiaX = 0.221170;
 
-    const vector<int> angleInits = {96, 94, 17};
+    // const vector<int> angleInits = {96, 94, 17};
+
+    const vector<int> angleInits = {90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17};
 
     const vector<float> bodyLegOffsets = {0.180, 0.130, 0.180, 0.180, 0.130, 0.180};
     const vector<float> femurRotation= {M_PI_2, M_PI_2, M_PI_2, -M_PI_2, -M_PI_2, -M_PI_2};

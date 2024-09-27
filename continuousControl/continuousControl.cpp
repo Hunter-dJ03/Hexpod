@@ -309,6 +309,15 @@ void runHexapod(HexapodControl& hexapod) {
             hexapod.printPos();
         }
 
+        // Display current leg information
+        if (buttonB) {
+            hexapod.jumpToZero();
+        }
+        // Display current leg information
+        if (buttonA) {
+            hexapod.jumpToOff();
+        }
+
         // Real time delay and server integration;
         hexapod.rsLoop.realTimeDelay();
 

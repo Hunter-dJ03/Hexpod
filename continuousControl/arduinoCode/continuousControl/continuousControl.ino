@@ -2,11 +2,11 @@
 #include <Servo.h>
 
 
-#define DEBUG_MODE false  // Set to true to enable Serial output, false to disable
+#define DEBUG_MODE true  // Set to true to enable Serial output, false to disable
 
 #if DEBUG_MODE
-  #define DEBUG_PRINTLN(x) Serial.println(x)
-  #define DEBUG_PRINT(x) Serial.print(x)
+  #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)  // Variadic macro for println
+  #define DEBUG_PRINT(...) Serial.print(__VA_ARGS__)      // Variadic macro for print
   #define DEBUG_WRITE(x) Serial.write(x)
 
   unsigned long debugStartTime = 0;
@@ -16,10 +16,9 @@
     Serial.print(": "); \
     Serial.println(micros() - debugStartTime); 
 #else
-  #define DEBUG_PRINT(x)
+  #define DEBUG_PRINT(...)
   #define DEBUG_WRITE(x)
-  #define DEBUG_PRINTLN(x)
-
+  #define DEBUG_PRINTLN(...)
   #define DEBUG_TIME_START()
   #define DEBUG_TIME_END(message)
 #endif
@@ -29,7 +28,7 @@ byte buffer[PACKET_SIZE];
 
 // Min and max pulse widths for servos
 const int MIN_PULSE = 500;  // Minimum pulse width in microseconds
-const int MAX_PULSE = 2500; // Maximum pulse width in microseconds
+const int MAX_PULSE = 2500; // Maximum pulse width in microseconds (maps  48928 to 2500)
 
 Servo coxa1;
 Servo femur1;
@@ -75,33 +74,60 @@ void initLegs() {
    coxa6.attach(40);
    femur6.attach(42);
    tibia6.attach(44);
+
+
+// Now set the writeMicroseconds values
+coxa1.writeMicroseconds(1500);
+femur1.writeMicroseconds(MIN_PULSE);
+tibia1.writeMicroseconds(MIN_PULSE);
+
+coxa2.writeMicroseconds(1500);
+femur2.writeMicroseconds(MIN_PULSE);
+tibia2.writeMicroseconds(MIN_PULSE);
+
+coxa3.writeMicroseconds(1500);
+femur3.writeMicroseconds(MIN_PULSE);
+tibia3.writeMicroseconds(MIN_PULSE);
+
+coxa4.writeMicroseconds(1500);
+femur4.writeMicroseconds(MIN_PULSE);
+tibia4.writeMicroseconds(MIN_PULSE);
+
+coxa5.writeMicroseconds(1500);
+femur5.writeMicroseconds(MIN_PULSE);
+tibia5.writeMicroseconds(MIN_PULSE);
+
+coxa6.writeMicroseconds(1500);
+femur6.writeMicroseconds(MIN_PULSE);
+tibia6.writeMicroseconds(MIN_PULSE);
 };
 
 void updateServos(uint16_t values[18]) {
+
     // Map and assign each value directly to the corresponding servo
-    coxa1.writeMicroseconds(map(values[0], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur1.writeMicroseconds(map(values[1], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia1.writeMicroseconds(map(values[2], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa1.writeMicroseconds(map(values[0], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur1.writeMicroseconds(map(values[1], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia1.writeMicroseconds(map(values[2], 0, 18000, MIN_PULSE, MAX_PULSE));
     
-    coxa2.writeMicroseconds(map(values[3], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur2.writeMicroseconds(map(values[4], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia2.writeMicroseconds(map(values[5], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa2.writeMicroseconds(map(values[3], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur2.writeMicroseconds(map(values[4], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia2.writeMicroseconds(map(values[5], 0, 18000, MIN_PULSE, MAX_PULSE));
     
-    coxa3.writeMicroseconds(map(values[6], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur3.writeMicroseconds(map(values[7], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia3.writeMicroseconds(map(values[8], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa3.writeMicroseconds(map(values[6], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur3.writeMicroseconds(map(values[7], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia3.writeMicroseconds(map(values[8], 0, 18000, MIN_PULSE, MAX_PULSE));
     
-    coxa4.writeMicroseconds(map(values[9], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur4.writeMicroseconds(map(values[10], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia4.writeMicroseconds(map(values[11], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa4.writeMicroseconds(map(values[9], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur4.writeMicroseconds(map(values[10], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia4.writeMicroseconds(map(values[11], 0, 18000, MIN_PULSE, MAX_PULSE));
     
-    coxa5.writeMicroseconds(map(values[12], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur5.writeMicroseconds(map(values[13], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia5.writeMicroseconds(map(values[14], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa5.writeMicroseconds(map(values[12], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur5.writeMicroseconds(map(values[13], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia5.writeMicroseconds(map(values[14], 0, 18000, MIN_PULSE, MAX_PULSE));
     
-    coxa6.writeMicroseconds(map(values[15], 0, 65535, MIN_PULSE, MAX_PULSE));
-    femur6.writeMicroseconds(map(values[16], 0, 65535, MIN_PULSE, MAX_PULSE));
-    tibia6.writeMicroseconds(map(values[17], 0, 65535, MIN_PULSE, MAX_PULSE));
+    coxa6.writeMicroseconds(map(values[15], 0, 18000, MIN_PULSE, MAX_PULSE));
+    femur6.writeMicroseconds(map(values[16], 0, 18000, MIN_PULSE, MAX_PULSE));
+    tibia6.writeMicroseconds(map(values[17], 0, 18000, MIN_PULSE, MAX_PULSE));
 }
 
 // int deg2ms(double angle) {
@@ -132,6 +158,13 @@ void loop() {
         uint16_t values[18];
         for (int i = 0; i < 18; i++) {
           values[i] = (buffer[2 * i + 1] << 8) | buffer[2 * i + 2];
+
+          // DEBUG_PRINT("DOF: ");
+          // DEBUG_PRINT(i+1);
+          // DEBUG_PRINT(": ");
+          // DEBUG_PRINT(values[i]);
+          // DEBUG_PRINT(", ");
+          // DEBUG_PRINTLN(values[i]/ 100.0);
         }
 
         // Compute checksum of received data

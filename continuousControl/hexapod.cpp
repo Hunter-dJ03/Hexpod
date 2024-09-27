@@ -167,7 +167,7 @@ void HexapodControl::jumpToOff()
     Eigen::VectorXd offAnglesVector(18);
 
     // Desired angles array for each leg
-    float offAngles[3] = {0 * M_PI / 180, 90 * M_PI / 180, (360 - 163) * M_PI / 180};
+    float offAngles[3] = {0 * M_PI / 180, 135 * M_PI / 180, (360 - 163) * M_PI / 180};
 
     // Move angle arrays to eigen vector
     for (int i = 0; i < 18; ++i)
@@ -422,7 +422,7 @@ void HexapodControl::sendAngs()
 
         // std::vector<std::bitset<bitLength>> angleBinaryRepresentation(modifiedAngs.size());
 
-        const double scale_factor = 1000.0;
+        const double scale_factor = 100.0;
 
         // Create packet: start byte, data, and checksum
         std::vector<uint8_t> packet;
@@ -438,24 +438,26 @@ void HexapodControl::sendAngs()
                 baseValue = -baseValue + 360;
             }
 
-            baseValue += angleInits[i % 3];
+            baseValue += angleInits[i];
 
             if (i == 10 || i == 11 || i == 13 || i == 14 || i == 16 || i == 17)
             {
                 baseValue = 180 - baseValue;
             };
 
+
+            // Calc Out of range
             if (!i % 3)
             {
-                if (baseValue > angleInits[i % 3] + 60)
+                if (baseValue > angleInits[i] + 60)
                 {
-                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] + 60 << endl;
-                    baseValue = angleInits[i % 3] + 60;
+                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i] + 60 << endl;
+                    baseValue = angleInits[i] + 60;
                 }
-                else if (baseValue < angleInits[i % 3] - 60)
+                else if (baseValue < angleInits[i] - 60)
                 {
-                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i % 3] - 60 << endl;
-                    baseValue = angleInits[i % 3] - 60;
+                    // cout << "Coxa out of range, " << baseValue << ", capping arduino at " << angleInits[i] - 60 << endl;
+                    baseValue = angleInits[i] - 60;
                 }
             }
             else if (i % 3)
@@ -485,11 +487,10 @@ void HexapodControl::sendAngs()
                 }
             }
 
-            
 
             uint16_t scaled_value = static_cast<uint16_t>(round(baseValue * scale_factor));
 
-            cout << scaled_value << endl;
+            cout << "DOF " << i+1 << ": " << baseValue << ", " << scaled_value << endl;
 
             // Optional: Ensure that the scaled value is within the 16-bit range
             scaled_value = std::min(scaled_value, static_cast<uint16_t>(65535));
@@ -526,14 +527,14 @@ void HexapodControl::sendAngs()
     }
 
     // For simulator (NOT IDEAL)
-    // if (simulator)
-    // {
-    //     // Set Simulation angles (NOT IDEAL) 
-    //     simulator->setSimAngle(modifiedAngs);
+    if (simulator)
+    {
+        // Set Simulation angles (NOT IDEAL) 
+        simulator->setSimAngle(modifiedAngs);
 
-    //     // Set current angles as the desired holding angles when not performing operation
-    //     desiredAngles = modifiedAngs;
-    // }
+        // Set current angles as the desired holding angles when not performing operation
+        desiredAngles = modifiedAngs;
+    }
 }
 
 void HexapodControl::jacobianTest(const int &style)
