@@ -48,7 +48,7 @@ void signalHandler(int signum) {
 
 // Function for reading from controller in new thread
 void readController(HexapodControl& hexapod) {
-    const char *device = "/dev/input/event20";  // Input event stream for contorller (might need to adjust for when event changes )
+    const char *device = "/dev/input/event21";  // Input event stream for contorller (might need to adjust for when event changes )
     
     // Controller connection status
     int fd;
