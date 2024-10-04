@@ -1,9 +1,4 @@
 #include "hexapod.h"
-#include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
-#include "../modules/custom/utilities/utils.h"
-#include "../modules/custom/raisimSimulatorFull/raisimSimulator.h"
-
-#include "matplotlibcpp.h"
 
 #include <iostream>
 #include <fmt/core.h>
@@ -14,19 +9,16 @@
 #include <bitset>
 
 using namespace std;
-namespace plt = matplotlibcpp;
 using namespace this_thread; // sleep_for, sleep_until
 using chrono::system_clock;
 
+#ifdef USE_SIMULATOR
 // Hexapod Class constructor
 HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath)
     : id(id), arduino(move(arduino)), rsLoop(rsLoop), arduinoConnected(arduinoConnected), rsStep(rsStep)
 {
     // If simulator is chosen then create a raisim simulator
-    if (raisimSimulator)
-    {
-        simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodCustom.urdf");
-    }
+    simulator = make_unique<RaisimSimulator>(rsStep, binaryPath, "hexapodCustom.urdf");
 
     // Initialise VectorXd sizes for angles and positions
     currentAngles = Eigen::VectorXd(18);
@@ -53,10 +45,36 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     // Jump to starting curled position
     // jumpToCurled();
 
-    if (simulator) {
-        simulator->setSimAngle(currentAngles);
-    }
+    simulator->setSimAngle(currentAngles);
 }
+#else
+
+HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoController> arduino, RSTimedLoop &rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep)
+    : id(id), arduino(move(arduino)), rsLoop(rsLoop), arduinoConnected(arduinoConnected), rsStep(rsStep)
+{
+    // Initialise VectorXd sizes for angles and positions
+    currentAngles = Eigen::VectorXd(18);
+    pos = Eigen::VectorXd(18);
+    desiredAngles = Eigen::VectorXd(18);
+    currentAngularVelocities = Eigen::VectorXd(18);
+
+    currentAngularVelocities.setZero();
+    
+    // Desired angles array for each leg
+    float baseAngs[3] = {0, 2.35619, 3.52557};
+
+    // Move angle arrays to eigen vector
+    for (int i = 0; i < 18; ++i)
+    {
+        currentAngles[i] = baseAngs[i % 3]; // Repeat the set of 3 angles
+    }
+
+    desiredAngles = currentAngles;
+
+    // Set hexapod active level (deployed or not)
+    active = false;
+}
+#endif
 
 // Class destructor
 HexapodControl::~HexapodControl()
@@ -67,10 +85,9 @@ HexapodControl::~HexapodControl()
         arduino.reset();
     }
     // Reset simulator unique pointer
-    if (simulator)
-    {
+    #ifdef USE_SIMULATOR
         simulator.reset();
-    }
+    #endif
 }
 
 // Perform jacobian mathematics based on current angle and input legnum
@@ -312,10 +329,10 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
         // Find next aqngles using discrete integration
         nextAngles = currentAngles + desiredAngularVelocities * (rsStep / 1000);
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
             simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
-        }
+        #endif
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -326,10 +343,10 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 
         sendAngs();
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Integrate the Simulator server
             simulator->server->integrateWorldThreadSafe();
-        }
+        #endif
     }
 
     // Set current angles as the desired holding angles when not performing operation
@@ -529,14 +546,13 @@ void HexapodControl::sendAngs()
     }
 
     // For simulator (NOT IDEAL)
-    if (simulator)
-    {
+    #ifdef USE_SIMULATOR
         // Set Simulation angles (NOT IDEAL) 
         simulator->setSimAngle(modifiedAngs);
 
         // Set current angles as the desired holding angles when not performing operation
         desiredAngles = modifiedAngs;
-    }
+    #endif
 }
 
 void HexapodControl::jacobianTest(const int &style)
@@ -573,14 +589,14 @@ void HexapodControl::jacobianTest(const int &style)
         // Hold position for 1 seconds
         // if (i < 1000 / rsStep)
         // {
-        //     if (simulator) {
+        //     #ifdef USE_SIMULATOR
         //         // Set sim velocity to 0
         //         simulator->setSimVelocity(desiredAngles, Eigen::VectorXd::Zero(18));
         //     }
         //     // Implement Real time delay
         //     rsLoop.realTimeDelay();
 
-        //     if (simulator) {
+        //     #ifdef USE_SIMULATOR
         //         // Integrate the Simulator server
         //         simulator->server->integrateWorldThreadSafe();
         //     }
@@ -649,10 +665,10 @@ void HexapodControl::jacobianTest(const int &style)
         // Send the angles to the arduino and simulation as desired
         setAngs(nextAngles);
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
             simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
-        }
+        #endif
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -661,10 +677,10 @@ void HexapodControl::jacobianTest(const int &style)
         // Implement Real time delay
         rsLoop.realTimeDelay();
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Integrate the Simulator server
             simulator->server->integrateWorldThreadSafe();
-        }
+        #endif
 
         // Decrement operation duration for limit
         operationDuration--;
@@ -832,10 +848,10 @@ void HexapodControl::walk(double vel, double ang)
         // Send the angles to the arduino and simulation as desired
         setAngs(nextAngles);
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
             simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
-        }
+        #endif
 
         // Update class angles and position for current state
         currentAngles = nextAngles;
@@ -844,10 +860,10 @@ void HexapodControl::walk(double vel, double ang)
         // Implement Real time delay
         rsLoop.realTimeDelay();
 
-        if (simulator) {
+        #ifdef USE_SIMULATOR
             // Integrate the Simulator server
             simulator->server->integrateWorldThreadSafe();
-        }
+        #endif
 
         // Decrement operation duration for limit
         operationDuration--;

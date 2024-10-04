@@ -9,6 +9,8 @@ option(USE_SIMULATOR "Enable simulator support" ON)
 # Pass the flag to the compiler
 if(USE_SIMULATOR)
     add_definitions(-DUSE_SIMULATOR)
+    # Set the CMAKE_PREFIX_PATH if the simulator is enabled
+    set(CMAKE_PREFIX_PATH "/home/hunter/raisim_ws/repos/raisimlib/raisim/linux")
 endif()
 
 # Find packages
@@ -50,7 +52,7 @@ target_link_libraries(continuousControl PUBLIC
 if(NOT WIN32)
   target_link_libraries(continuousControl PUBLIC pthread)
 else()
-  target_link_libraries(continuousControl PUBLIC Ws2_32 Winmm)
+  target_link_libraries(continuousControl PUBLIC Ws2_32 Winmm)  
 endif()
 
 # Include directories for this specific target

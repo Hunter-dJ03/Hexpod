@@ -1,3 +1,11 @@
+#ifdef USE_SIMULATOR
+    const bool raisimSimulator = true;
+    #include "raisim/RaisimServer.hpp"
+    #include <raisim/Path.hpp>
+#else
+    const bool raisimSimulator = false;
+#endif
+
 #include <iostream>
 #include <fcntl.h>
 #include <unistd.h>
@@ -9,7 +17,6 @@
 #include <csignal>
 #include "../modules/custom/utilities/utils.h"
 #include <iomanip>
-#include "raisim/RaisimServer.hpp"
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "hexapod.h"
@@ -17,10 +24,10 @@
 #include <memory>
 
 
+
 using namespace std;
 
 // Operation Parameters
-const bool raisimSimulator = false;
 const float rsStep = 5; // Real Time Step (ms)
 
 // Real Time Loop initialisation
@@ -48,7 +55,7 @@ void signalHandler(int signum) {
 
 // Function for reading from controller in new thread
 void readController(HexapodControl& hexapod) {
-    const char *device = "/dev/input/event21";  // Input event stream for contorller (might need to adjust for when event changes )
+    const char *device = "/dev/input/event17";  // Input event stream for contorller (might need to adjust for when event changes )
     
     // Controller connection status
     int fd;
@@ -245,9 +252,9 @@ void runHexapod(HexapodControl& hexapod) {
     while (running) {
         
         // Preset holding position
-        if (hexapod.simulator) {
+        #ifdef USE_SIMULATOR
             hexapod.simulator->setSimVelocity(hexapod.desiredAngles, Eigen::VectorXd::Zero(18));
-        }
+        #endif
 
         // Update the current position
         hexapod.updatePos();
@@ -321,9 +328,9 @@ void runHexapod(HexapodControl& hexapod) {
         // Real time delay and server integration;
         hexapod.rsLoop.realTimeDelay();
 
-        if (hexapod.simulator) {
+        #ifdef USE_SIMULATOR
             hexapod.simulator->server->integrateWorldThreadSafe();
-        }
+        #endif
     }
 
     // Calculate and display the duration
@@ -331,17 +338,18 @@ void runHexapod(HexapodControl& hexapod) {
     chrono::duration<double> elapsed = endTime - startTime;
     cout << "\nrunHexapod loop duration: " << elapsed.count() << " seconds." << endl;
 
-    if (hexapod.simulator) {
+    #ifdef USE_SIMULATOR
         // Close the raisim simulator
         hexapod.simulator->server->killServer();
-    }
+    #endif
 }
 
 // initial function
 int main(int argc, char* argv[]) {
 
-    // Set the path for raisim simulator
-    Path binaryPath = raisim::Path::setFromArgv(argv[0]);
+    #ifdef USE_SIMULATOR
+        Path binaryPath = raisim::Path::setFromArgv(argv[0]);
+    #endif
 
     // Setup communication file stream for arduino connection
     fstream arduinoPort("/dev/ttyACM0");
@@ -369,12 +377,15 @@ int main(int argc, char* argv[]) {
         cout << "Arduino not connected. Running in simulation mode." << endl;
     }
     // Create Hexapod 
-    HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep, binaryPath);
+    HexapodControl hexapod(1, move(arduino), rsLoop, arduinoConnected, raisimSimulator, rsStep
+    #ifdef USE_SIMULATOR
+        , binaryPath
+    #endif
+    );
 
-    if (hexapod.simulator) {
-    // Set simulation view to the hexapod
+    #ifdef USE_SIMULATOR
         hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
-    }
+    #endif
 
     // Start the controller input reading in a separate thread
     thread input_thread(readController, ref(hexapod));

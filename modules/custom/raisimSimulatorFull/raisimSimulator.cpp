@@ -1,6 +1,5 @@
 #include "raisimSimulator.h"
 #include "raisim/World.hpp"
-#include "matplotlibcpp.h"
 #include "raisim/RaisimServer.hpp"
 #include <iostream>
 #include <vector>

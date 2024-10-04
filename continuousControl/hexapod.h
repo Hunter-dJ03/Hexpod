@@ -1,9 +1,13 @@
 #ifndef HEXAPODCONTROL_H
 #define HEXAPODCONTROL_H
 
+#ifdef USE_SIMULATOR
+    #include "../modules/custom/raisimSimulatorFull/raisimSimulator.h"
+    #include <raisim/Path.hpp>  // Include Path from raisim only if simulator is enabled
+#endif
+
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
-#include "../modules/custom/raisimSimulatorFull/raisimSimulator.h"
 #include <vector>
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Dense>
@@ -14,7 +18,11 @@ using namespace std;
 class HexapodControl
 {
 public:
-    HexapodControl(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
+    #ifdef USE_SIMULATOR
+        HexapodControl(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep, Path binaryPath);
+    #else
+        HexapodControl(unsigned int id, unique_ptr<ArduinoController> arduino, RSTimedLoop& rsLoop, bool arduinoConnected, bool raisimSimulator, float rsStep);
+    #endif
     ~HexapodControl();
 
     Eigen::MatrixXd getJacobian(int legNum) const;
@@ -59,7 +67,10 @@ public:
 
     double moveVectorMag;
     RSTimedLoop& rsLoop;
-    unique_ptr<RaisimSimulator> simulator;
+    
+    #ifdef USE_SIMULATOR
+        unique_ptr<RaisimSimulator> simulator;  // Simulator object
+    #endif
 
     double minStepDuration = 2000;
     double jacDuration = 5000;
