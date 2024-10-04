@@ -120,7 +120,7 @@ bool SteelSeriesDeviceFinder::check_event_capabilities(const std::string &event_
     // We know the correct controller supports both EV_KEY and EV_ABS, as well as ABS_X, ABS_Y
     if (has_ev_key && has_ev_abs && supports_abs_x && supports_abs_y)
     {
-        std::cout << "This device matches the correct capabilities!" << std::endl;
+        // std::cout << "This device matches the correct capabilities!" << std::endl;
         close(fd);
         return true;
     }

@@ -22,6 +22,7 @@
 #include "hexapod.h"
 #include <fstream>
 #include <memory>
+#include "../modules/custom/getController/getController.h"
 
 
 
@@ -55,20 +56,23 @@ void signalHandler(int signum) {
 
 // Function for reading from controller in new thread
 void readController(HexapodControl& hexapod) {
-    const char *device = "/dev/input/event17";  // Input event stream for contorller (might need to adjust for when event changes )
-    
     // Controller connection status
     int fd;
 
     // Loop until the Controller is successfully opened
     while (true) {
+
+        // Input event stream for contorller (might need to adjust for when event changes )
+        const string device = SteelSeriesDeviceFinder::get_device_path("SteelSeries Stratus XL");
+
         // Access controller
-        fd = open(device, O_RDONLY);
+        fd = open(device.c_str(), O_RDONLY);
 
         if (fd == -1) {
-            cerr << "Failed to open input device. Retrying..." << endl;
+            cerr << "Failed to open input device "<<device<<". Retrying..." << endl;
             sleep(1);  // Wait for 1 second before trying again
         } else {
+            cout << "Connected to device: " << device << endl;
             break;  // Exit loop when successfully opened
         }
     }

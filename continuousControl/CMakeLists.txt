@@ -33,6 +33,7 @@ add_executable(continuousControl
     hexapod.cpp
     ../modules/custom/rsTimedLoop/rsTimedLoop.cpp
     ../modules/custom/utilities/utils.cpp
+    ../modules/custom/getController/getController.cpp
 )
 
 # Conditionally add simulator sources
