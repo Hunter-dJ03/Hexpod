@@ -20,7 +20,7 @@
 using namespace std;
 
 // Operation Parameters
-const bool raisimSimulator = true;
+const bool raisimSimulator = false;
 const float rsStep = 5; // Real Time Step (ms)
 
 // Real Time Loop initialisation

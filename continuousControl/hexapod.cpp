@@ -53,7 +53,9 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     // Jump to starting curled position
     // jumpToCurled();
 
-    simulator->setSimAngle(currentAngles);
+    if (simulator) {
+        simulator->setSimAngle(currentAngles);
+    }
 }
 
 // Class destructor
@@ -418,7 +420,7 @@ void HexapodControl::sendAngs()
     // For Sending to Arduino
     if (arduinoConnected)
     {
-        cout <<endl;
+        // cout <<endl;
 
         // std::vector<std::bitset<bitLength>> angleBinaryRepresentation(modifiedAngs.size());
 
@@ -490,7 +492,7 @@ void HexapodControl::sendAngs()
 
             uint16_t scaled_value = static_cast<uint16_t>(round(baseValue * scale_factor));
 
-            cout << "DOF " << i+1 << ": " << baseValue << ", " << scaled_value << endl;
+            // cout << "DOF " << i+1 << ": " << baseValue << ", " << scaled_value << endl;
 
             // Optional: Ensure that the scaled value is within the 16-bit range
             scaled_value = std::min(scaled_value, static_cast<uint16_t>(65535));
@@ -564,7 +566,7 @@ void HexapodControl::jacobianTest(const int &style)
         // Operation stop interrupt
         if (operationDuration < 0)
         {
-            cout << "exiting" <<endl;
+            // cout << "exiting" <<endl;
             break;
         }
 
@@ -774,7 +776,7 @@ void HexapodControl::walk(double vel, double ang)
             // adjust operation duration to for new velocity
             operationDuration =  (T/2 * 1000 / rsStep) * rat1; 
 
-            cout <<operationDuration << endl;
+            // cout <<operationDuration << endl;
         }
         
         // Trajectory parameters

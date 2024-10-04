@@ -2,7 +2,7 @@
 #include <Servo.h>
 
 
-#define DEBUG_MODE true  // Set to true to enable Serial output, false to disable
+#define DEBUG_MODE false  // Set to true to enable Serial output, false to disable
 
 #if DEBUG_MODE
 #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)  // Variadic macro for println
@@ -65,7 +65,7 @@ void initLegs() {
 
   coxa4.attach(37);   // validated
   femur4.attach(39);  // validated
-  tibia4.attach(41);  
+  tibia4.attach(41);  // validated
 
   coxa5.attach(50);   // validated
   femur5.attach(48);  // validated
