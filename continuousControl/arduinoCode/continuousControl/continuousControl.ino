@@ -2,7 +2,7 @@
 #include <Servo.h>
 
 
-#define DEBUG_MODE false  // Set to true to enable Serial output, false to disable
+#define DEBUG_MODE true  // Set to true to enable Serial output, false to disable
 
 #if DEBUG_MODE
 #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)  // Variadic macro for println
@@ -70,64 +70,155 @@ void initLegs() {
   coxa5.attach(50);   // validated
   femur5.attach(48);  // validated
   tibia5.attach(46);  // validated
-
+  
   coxa6.attach(40);   // validated
   femur6.attach(42);  // validated
   tibia6.attach(44);  // validated
 
 
   // Now set the writeMicroseconds values
-  coxa1.writeMicroseconds(1500);
-  femur1.writeMicroseconds(MAX_PULSE);
-  tibia1.writeMicroseconds(MAX_PULSE);
+  coxa1.writeMicroseconds(1595);
+  femur1.writeMicroseconds(2380);
+  tibia1.writeMicroseconds(2300);
 
-  coxa2.writeMicroseconds(1500);
-  femur2.writeMicroseconds(MAX_PULSE);
-  tibia2.writeMicroseconds(MAX_PULSE);
+  coxa2.writeMicroseconds(1450);
+  femur2.writeMicroseconds(2280);
+  tibia2.writeMicroseconds(2330);
 
-  coxa3.writeMicroseconds(1500);
-  femur3.writeMicroseconds(MAX_PULSE);
-  tibia3.writeMicroseconds(MAX_PULSE);
+  coxa3.writeMicroseconds(1560);
+  femur3.writeMicroseconds(2375);
+  tibia3.writeMicroseconds(2335);
 
-  coxa4.writeMicroseconds(1500);
-  femur4.writeMicroseconds(MIN_PULSE);
-  tibia4.writeMicroseconds(MIN_PULSE);
+  coxa4.writeMicroseconds(1580);
+  femur4.writeMicroseconds(640);
+  tibia4.writeMicroseconds(620);
 
-  coxa5.writeMicroseconds(1500);
-  femur5.writeMicroseconds(MIN_PULSE);
-  tibia5.writeMicroseconds(MIN_PULSE);
+  coxa5.writeMicroseconds(1530);
+  femur5.writeMicroseconds(630);
+  tibia5.writeMicroseconds(550);
 
-  coxa6.writeMicroseconds(1500);
-  femur6.writeMicroseconds(MIN_PULSE);
-  tibia6.writeMicroseconds(MIN_PULSE);
+  coxa6.writeMicroseconds(1490);
+  femur6.writeMicroseconds(625);
+  tibia6.writeMicroseconds(575);
 };
 
 void updateServos(uint16_t values[18]) {
 
   // Map and assign each value directly to the corresponding servo
-  coxa1.writeMicroseconds(map(values[0], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur1.writeMicroseconds(map(values[1], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia1.writeMicroseconds(map(values[2], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa1.writeMicroseconds(constrain(map(values[0], 0, 18000, MIN_PULSE, MAX_PULSE)+95, MIN_PULSE, MAX_PULSE));
+  femur1.writeMicroseconds(constrain(map(values[1], 0, 18000, MIN_PULSE, MAX_PULSE)-120, MIN_PULSE, MAX_PULSE));
+  tibia1.writeMicroseconds(constrain(map(values[2], 0, 18000, MIN_PULSE, MAX_PULSE)-200, MIN_PULSE, MAX_PULSE));
 
-  coxa2.writeMicroseconds(map(values[3], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur2.writeMicroseconds(map(values[4], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia2.writeMicroseconds(map(values[5], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa2.writeMicroseconds(constrain(map(values[3], 0, 18000, MIN_PULSE, MAX_PULSE)-50, MIN_PULSE, MAX_PULSE));
+  femur2.writeMicroseconds(constrain(map(values[4], 0, 18000, MIN_PULSE, MAX_PULSE)-220, MIN_PULSE, MAX_PULSE));
+  tibia2.writeMicroseconds(constrain(map(values[5], 0, 18000, MIN_PULSE, MAX_PULSE)-170, MIN_PULSE, MAX_PULSE));
 
-  coxa3.writeMicroseconds(map(values[6], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur3.writeMicroseconds(map(values[7], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia3.writeMicroseconds(map(values[8], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa3.writeMicroseconds(constrain(map(values[6], 0, 18000, MIN_PULSE, MAX_PULSE)+60, MIN_PULSE, MAX_PULSE));
+  femur3.writeMicroseconds(constrain(map(values[7], 0, 18000, MIN_PULSE, MAX_PULSE)-125, MIN_PULSE, MAX_PULSE));
+  tibia3.writeMicroseconds(constrain(map(values[8], 0, 18000, MIN_PULSE, MAX_PULSE)-165, MIN_PULSE, MAX_PULSE));
 
-  coxa4.writeMicroseconds(map(values[9], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur4.writeMicroseconds(map(values[10], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia4.writeMicroseconds(map(values[11], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa4.writeMicroseconds(constrain(map(values[9], 0, 18000, MIN_PULSE, MAX_PULSE)+80, MIN_PULSE, MAX_PULSE));
+  femur4.writeMicroseconds(constrain(map(values[10], 0, 18000, MIN_PULSE, MAX_PULSE)+140, MIN_PULSE, MAX_PULSE));
+  tibia4.writeMicroseconds(constrain(map(values[11], 0, 18000, MIN_PULSE, MAX_PULSE)+120, MIN_PULSE, MAX_PULSE));
 
-  coxa5.writeMicroseconds(map(values[12], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur5.writeMicroseconds(map(values[13], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia5.writeMicroseconds(map(values[14], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa5.writeMicroseconds(constrain(map(values[12], 0, 18000, MIN_PULSE, MAX_PULSE)+30, MIN_PULSE, MAX_PULSE));
+  femur5.writeMicroseconds(constrain(map(values[13], 0, 18000, MIN_PULSE, MAX_PULSE)+130, MIN_PULSE, MAX_PULSE));
+  tibia5.writeMicroseconds(constrain(map(values[14], 0, 18000, MIN_PULSE, MAX_PULSE)+50, MIN_PULSE, MAX_PULSE));
 
-  coxa6.writeMicroseconds(map(values[15], 0, 18000, MIN_PULSE, MAX_PULSE));
-  femur6.writeMicroseconds(map(values[16], 0, 18000, MIN_PULSE, MAX_PULSE));
-  tibia6.writeMicroseconds(map(values[17], 0, 18000, MIN_PULSE, MAX_PULSE));
+  coxa6.writeMicroseconds(constrain(map(values[15], 0, 18000, MIN_PULSE, MAX_PULSE)-10, MIN_PULSE, MAX_PULSE));
+  femur6.writeMicroseconds(constrain(map(values[16], 0, 18000, MIN_PULSE, MAX_PULSE)+125, MIN_PULSE, MAX_PULSE));
+  tibia6.writeMicroseconds(constrain(map(values[17], 0, 18000, MIN_PULSE, MAX_PULSE)+75, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa1 Mapped: ");
+  // DEBUG_PRINT(map(values[0], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[0], 0, 18000, MIN_PULSE, MAX_PULSE) + 95, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur1 Mapped: ");
+  // DEBUG_PRINT(map(values[1], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[1], 0, 18000, MIN_PULSE, MAX_PULSE) - 120, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia1 Mapped: ");
+  // DEBUG_PRINT(map(values[2], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[2], 0, 18000, MIN_PULSE, MAX_PULSE) - 200, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa2 Mapped: ");
+  // DEBUG_PRINT(map(values[3], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[3], 0, 18000, MIN_PULSE, MAX_PULSE) - 50, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur2 Mapped: ");
+  // DEBUG_PRINT(map(values[4], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[4], 0, 18000, MIN_PULSE, MAX_PULSE) - 220, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia2 Mapped: ");
+  // DEBUG_PRINT(map(values[5], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[5], 0, 18000, MIN_PULSE, MAX_PULSE) - 170, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa3 Mapped: ");
+  // DEBUG_PRINT(map(values[6], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[6], 0, 18000, MIN_PULSE, MAX_PULSE) + 60, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur3 Mapped: ");
+  // DEBUG_PRINT(map(values[7], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[7], 0, 18000, MIN_PULSE, MAX_PULSE) - 125, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia3 Mapped: ");
+  // DEBUG_PRINT(map(values[8], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[8], 0, 18000, MIN_PULSE, MAX_PULSE) - 165, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa4 Mapped: ");
+  // DEBUG_PRINT(map(values[9], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[9], 0, 18000, MIN_PULSE, MAX_PULSE) + 80, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur4 Mapped: ");
+  // DEBUG_PRINT(map(values[10], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[10], 0, 18000, MIN_PULSE, MAX_PULSE) + 140, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia4 Mapped: ");
+  // DEBUG_PRINT(map(values[11], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[11], 0, 18000, MIN_PULSE, MAX_PULSE) + 120, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa5 Mapped: ");
+  // DEBUG_PRINT(map(values[12], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[12], 0, 18000, MIN_PULSE, MAX_PULSE) + 30, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur5 Mapped: ");
+  // DEBUG_PRINT(map(values[13], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[13], 0, 18000, MIN_PULSE, MAX_PULSE) + 130, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia5 Mapped: ");
+  // DEBUG_PRINT(map(values[14], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[14], 0, 18000, MIN_PULSE, MAX_PULSE) + 50, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Coxa6 Mapped: ");
+  // DEBUG_PRINT(map(values[15], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[15], 0, 18000, MIN_PULSE, MAX_PULSE) - 10, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Femur6 Mapped: ");
+  // DEBUG_PRINT(map(values[16], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[16], 0, 18000, MIN_PULSE, MAX_PULSE) + 125, MIN_PULSE, MAX_PULSE));
+
+  // DEBUG_PRINT("Tibia6 Mapped: ");
+  // DEBUG_PRINT(map(values[17], 0, 18000, MIN_PULSE, MAX_PULSE));
+  // DEBUG_PRINT(" | Final: ");
+  // DEBUG_PRINTLN(constrain(map(values[17], 0, 18000, MIN_PULSE, MAX_PULSE) + 75, MIN_PULSE, MAX_PULSE));
+
 }
 
 // int deg2ms(double angle) {
