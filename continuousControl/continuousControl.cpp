@@ -326,7 +326,7 @@ void runHexapod(HexapodControl& hexapod) {
         }
         // Display current leg information
         if (buttonA) {
-            hexapod.jumpToOff();
+            hexapod.jumpToCurled();
         }
 
         // Real time delay and server integration;
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     );
 
     #ifdef USE_SIMULATOR
-        hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
+        // hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
     #endif
 
     // Start the controller input reading in a separate thread
