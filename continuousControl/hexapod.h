@@ -72,9 +72,9 @@ public:
         unique_ptr<RaisimSimulator> simulator;  // Simulator object
     #endif
 
-    double minStepDuration = 2000;
+    double minStepDuration = 4000;
     double jacDuration = 5000;
-    double standDuration = 1000;
+    double standDuration = 1500;
 
 private:
     float rsStep;
@@ -86,12 +86,12 @@ private:
     bool arduinoConnected;
 
     double standPos[18] = {
-        0.235586, 0.362771, -0.113248,
-        0.382555, 0, -0.113248,
-        0.235586, -0.362771, -0.113248,
-        -0.235586, -0.362771, -0.113248,
-        -0.382555, 0, -0.113248,
-        -0.235586, 0.362771, -0.113248};
+        0.235586, 0.362771, -0.14,
+        0.382555, 0, -0.14,
+        0.235586, -0.362771, -0.14,
+        -0.235586, -0.362771, -0.14,
+        -0.382555, 0, -0.14,
+        -0.235586, 0.362771, -0.14};
 
     // constexpr static float coxaX = 0.044925;
     // constexpr static float coxaZ = 0.01065;
@@ -112,7 +112,7 @@ private:
     const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
 
     double stepRadius = 0.08;
-    double stepHeight = 0.06;
+    double stepHeight = 0.1;
 
     double lastAngle = 0;
     vector<bool> standing = {0,1,0,1,0,1};

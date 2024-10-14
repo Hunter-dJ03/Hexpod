@@ -387,9 +387,9 @@ int main(int argc, char* argv[]) {
     #endif
     );
 
-    #ifdef USE_SIMULATOR
-        hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
-    #endif
+    // #ifdef USE_SIMULATOR
+    //     hexapod.simulator->server->focusOn(hexapod.simulator->hexapodLegModel.get());
+    // #endif
 
     // Start the controller input reading in a separate thread
     thread input_thread(readController, ref(hexapod));

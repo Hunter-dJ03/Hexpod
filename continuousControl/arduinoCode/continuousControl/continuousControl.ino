@@ -2,7 +2,7 @@
 #include <Servo.h>
 
 
-#define DEBUG_MODE true  // Set to true to enable Serial output, false to disable
+#define DEBUG_MODE false  // Set to true to enable Serial output, false to disable
 
 #if DEBUG_MODE
 #define DEBUG_PRINTLN(...) Serial.println(__VA_ARGS__)  // Variadic macro for println

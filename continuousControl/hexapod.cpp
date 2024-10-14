@@ -235,7 +235,7 @@ void HexapodControl::moveToOff()
     legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legOffPos, 1000);
+    moveLegsToPos(legOffPos, 2000);
 
     // Desired position double for each leg endpoint in off position
     double tempPosB[18] = {
@@ -250,7 +250,7 @@ void HexapodControl::moveToOff()
     legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosB, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legOffPos, 1000);
+    moveLegsToPos(legOffPos, 2000);
 }
 
 // Move to initial position for walk cycle
@@ -272,7 +272,7 @@ void HexapodControl::stand()
     legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
 
     // Move legs to the desired position
-    moveLegsToPos(legstandPos, 1000);
+    moveLegsToPos(legstandPos, 2000);
 
     moveToStand(standDuration);
 }
@@ -331,7 +331,7 @@ void HexapodControl::moveLegsToPos(const Eigen::VectorXd &desiredPos, float dur)
 
         #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
-            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+            // simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
         #endif
 
         // Update class angles and position for current state
@@ -547,6 +547,25 @@ void HexapodControl::sendAngs()
 
     // For simulator (NOT IDEAL)
     #ifdef USE_SIMULATOR
+
+        // Blank vector for desired angles
+        Eigen::VectorXd offAnglesVector(18);
+
+        // Desired angles array for each leg
+        float offAngles[3] = {0 * M_PI / 180, 135 * M_PI / 180, (360 - 158) * M_PI / 180};
+
+        // Move angle arrays to eigen vector
+        for (int i = 0; i < 18; ++i)
+        {
+            offAnglesVector[i] = offAngles[i % 3]; // Repeat the set of 3 angles
+        }
+
+        offAnglesVector(3) = modifiedAngs(3);
+        offAnglesVector(4) = modifiedAngs(4);
+        offAnglesVector(5) = modifiedAngs(5);
+
+
+        cout<<modifiedAngs <<endl;
         // Set Simulation angles (NOT IDEAL) 
         simulator->setSimAngle(modifiedAngs);
 
@@ -667,7 +686,7 @@ void HexapodControl::jacobianTest(const int &style)
 
         #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
-            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+            // simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
         #endif
 
         // Update class angles and position for current state
@@ -850,7 +869,7 @@ void HexapodControl::walk(double vel, double ang)
 
         #ifdef USE_SIMULATOR
             // Send Velocities to the simulator
-            simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
+            // simulator->setSimVelocity(nextAngles, desiredAngularVelocities);
         #endif
 
         // Update class angles and position for current state
