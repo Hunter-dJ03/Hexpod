@@ -12,8 +12,9 @@ RSTimedLoop::RSTimedLoop(int interval_ms) : interval(interval_ms) {
 // Delay thread until preset next time and set the next time for delay
 void RSTimedLoop::realTimeDelay() {
     this_thread::sleep_until(next_time);
+    prev_time = next_time;
     next_time += interval;
-    // cout << next_time.time_since_epoch().count() - start_time.time_since_epoch().count() <<endl;
+    cout << next_time.time_since_epoch().count() - prev_time.time_since_epoch().count() <<endl;
 }
 
 // Manually update the next time for real time delay

@@ -14,9 +14,10 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <iomanip>
+#include <ctime>
 #include <csignal>
 #include "../modules/custom/utilities/utils.h"
-#include <iomanip>
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include "../modules/custom/rsTimedLoop/rsTimedLoop.h"
 #include "hexapod.h"
@@ -145,7 +146,7 @@ void readController(HexapodControl& hexapod) {
                 case 318: // Right Joystick Click
                     // cout << "Right Joystick Click: " << ev.value << " (" 
                     //           << (ev.value == 1 ? "Pressed" : "Released") << ")" << endl;
-                    running = false;
+                    // running = false;
                     break;
                 case 304: // Button A
                     // cout << "Button A: " << ev.value << " (" 
@@ -235,7 +236,8 @@ void readController(HexapodControl& hexapod) {
         hexapod.directed = (lowVelCounter < 6);
 
         if (moveVectorMag < 0.05 && !hexapod.directed && lowVelCounter < 20) {
-            hexapod.operationDuration = 0;
+            // hexapod.operationDuration = 0;
+
         } 
     }
 
@@ -275,22 +277,22 @@ void runHexapod(HexapodControl& hexapod) {
                 hexapod.walk(moveVectorMag, moveVectorAng);
 
                 // Move back to stand position
-                if (moveVectorMag < 0.05) {
-                    hexapod.moveToStand(hexapod.standDuration);
-                }  
+                // if (moveVectorMag < 0.05) {
+                //     hexapod.moveToStand(hexapod.standDuration);
+                // }  
             } 
 
             // Jacobian Tests
             if (buttonX) {
                 if (dPadX == -1) {
                     hexapod.jacobianTest(0);
-                    hexapod.moveToStand(hexapod.standDuration);
+                    // hexapod.moveToStand(hexapod.standDuration);
                 } else if (dPadX == 1) {
                     hexapod.jacobianTest(1);
-                    hexapod.moveToStand(hexapod.standDuration);
+                    // hexapod.moveToStand(hexapod.standDuration);
                 } else if (dPadY == 1) {
                     hexapod.jacobianTest(2);
-                    hexapod.moveToStand(hexapod.standDuration);
+                    // hexapod.moveToStand(hexapod.standDuration);
                 }
             }
 
@@ -350,6 +352,10 @@ void runHexapod(HexapodControl& hexapod) {
 
 // initial function
 int main(int argc, char* argv[]) {
+    auto now = chrono::system_clock::now();
+    time_t currentTime = chrono::system_clock::to_time_t(now);
+    tm* localTime = localtime(&currentTime);
+    cout << "readArduino START: " << put_time(localTime, "%Y-%m-%d %H:%M:%S");
 
     #ifdef USE_SIMULATOR
         Path binaryPath = raisim::Path::setFromArgv(argv[0]);
