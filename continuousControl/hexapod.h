@@ -85,13 +85,15 @@ private:
 
     bool arduinoConnected;
 
+    double height = -0.07;
+
     double standPos[18] = {
-        0.235586, 0.362771, -0.14,
-        0.382555, 0, -0.14,
-        0.235586, -0.362771, -0.14,
-        -0.235586, -0.362771, -0.14,
-        -0.382555, 0, -0.14,
-        -0.235586, 0.362771, -0.14};
+        0.235586, 0.362771, height,
+        0.382555, 0, height,
+        0.235586, -0.362771, height,
+        -0.235586, -0.362771, height,
+        -0.382555, 0, height,
+        -0.235586, 0.362771, height};
 
     // constexpr static float coxaX = 0.044925;
     // constexpr static float coxaZ = 0.01065;
