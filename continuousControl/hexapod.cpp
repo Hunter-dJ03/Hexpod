@@ -28,6 +28,27 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
 
     currentAngularVelocities.setZero();
     
+    double stepDis;
+
+    for (int i = 0; i < 6; ++i)
+    {
+
+        if (i != 1 && i!= 4){
+            stepDis = stepOff - flush*0.05*cos(bodyLegAngles[i]) * ((i>2)*2-1);
+            cout << i <<endl;
+        } else {
+            stepDis = stepOff;
+        }
+
+        standPos[i*3] = bodyLegOffsets[i] * cos(bodyLegAngles[i]) + stepDis*cos(bodyLegStandAngs[i]);
+        standPos[i*3+1] = bodyLegOffsets[i] * sin(bodyLegAngles[i]) + stepOff*sin(bodyLegStandAngs[i]);
+        standPos[i*3+2] = height;
+
+        standIntermediatePos[i*3] = standPos[i*3];
+        standIntermediatePos[i*3+1] = standPos[i*3+1];
+        standIntermediatePos[i*3+2] = 0;
+    }
+
     // Desired angles array for each leg
     float baseAngs[3] = {0, 2.35619, 3.52557};
 
@@ -35,6 +56,7 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     for (int i = 0; i < 18; ++i)
     {
         currentAngles[i] = baseAngs[i % 3]; // Repeat the set of 3 angles
+        cout<<standPos[i]<<endl;
     }
 
     desiredAngles = currentAngles;
@@ -60,6 +82,27 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
 
     currentAngularVelocities.setZero();
     
+    double stepDis;
+
+    for (int i = 0; i < 6; ++i)
+    {
+
+        if (i != 1 && i!= 4){
+            stepDis = stepOff - flush*0.05*cos(bodyLegAngles[i]) * ((i>2)*2-1);
+            cout << i <<endl;
+        } else {
+            stepDis = stepOff;
+        }
+
+        standPos[i*3] = bodyLegOffsets[i] * cos(bodyLegAngles[i]) + stepDis*cos(bodyLegStandAngs[i]);
+        standPos[i*3+1] = bodyLegOffsets[i] * sin(bodyLegAngles[i]) + stepOff*sin(bodyLegStandAngs[i]);
+        standPos[i*3+2] = height;
+
+        standIntermediatePos[i*3] = standPos[i*3];
+        standIntermediatePos[i*3+1] = standPos[i*3+1];
+        standIntermediatePos[i*3+2] = 0;
+    }
+    
     // Desired angles array for each leg
     float baseAngs[3] = {0, 2.35619, 3.52557};
 
@@ -67,6 +110,7 @@ HexapodControl::HexapodControl(unsigned int id, std::unique_ptr<ArduinoControlle
     for (int i = 0; i < 18; ++i)
     {
         currentAngles[i] = baseAngs[i % 3]; // Repeat the set of 3 angles
+        cout<<standPos[i]<<endl;
     }
 
     desiredAngles = currentAngles;
@@ -223,16 +267,16 @@ void HexapodControl::moveToOff()
     Eigen::VectorXd legOffPos(18);
 
     // Desired position double for each leg endpoint in incremental position
-    double tempPosA[18] = {
-        0.235586, 0.362771, 0.0,
-        0.382555, 0.0, 0.0,
-        0.235586, -0.362771, 0.0,
-        -0.235586, -0.362771, 0.0,
-        -0.382555, 0.0, 0.0,
-        -0.235586, 0.362771, 0.0};
+    // double tempPosA[18] = {
+    //     0.235586, 0.362771, 0.0,
+    //     0.382555, 0.0, 0.0,
+    //     0.235586, -0.362771, 0.0,
+    //     -0.235586, -0.362771, 0.0,
+    //     -0.382555, 0.0, 0.0,
+    //     -0.235586, 0.362771, 0.0};
 
     // Map desired pos double to desired pos Eigen VectorXd
-    legOffPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
+    legOffPos = Eigen::Map<Eigen::VectorXd>(standIntermediatePos, 18);
 
     // Move legs to the desired position
     moveLegsToPos(legOffPos, 2000);
@@ -260,16 +304,16 @@ void HexapodControl::stand()
     Eigen::VectorXd legstandPos(18);
 
     // Desired position double for each leg endpoint in incremental position
-    double tempPosA[18] = {
-        0.235586, 0.362771, 0,
-        0.382555, 0, 0,
-        0.235586, -0.362771, 0,
-        -0.235586, -0.362771, 0,
-        -0.382555, 0, 0,
-        -0.235586, 0.362771, 0};
+    // double tempPosA[18] = {
+    //     0.235586, 0.362771, 0.0,
+    //     0.382555, 0.0, 0.0,
+    //     0.235586, -0.362771, 0.0,
+    //     -0.235586, -0.362771, 0.0,
+    //     -0.382555, 0.0, 0.0,
+    //     -0.235586, 0.362771, 0};
 
     // Map desired pos double to desired pos Eigen VectorXd
-    legstandPos = Eigen::Map<Eigen::VectorXd>(tempPosA, 18);
+    legstandPos = Eigen::Map<Eigen::VectorXd>(standIntermediatePos, 18);
 
     // Move legs to the desired position
     moveLegsToPos(legstandPos, 2000);

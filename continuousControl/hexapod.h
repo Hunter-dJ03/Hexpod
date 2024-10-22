@@ -72,7 +72,8 @@ public:
         unique_ptr<RaisimSimulator> simulator;  // Simulator object
     #endif
 
-    double minStepDuration = 4000;
+    // Walk Params
+    double minStepDuration = 8000;
     double jacDuration = 5000;
     double standDuration = 1500;
 
@@ -80,42 +81,37 @@ private:
     float rsStep;
     void sendAngs();
     
+    // Arduino object params
     unique_ptr<ArduinoController> arduino;
-    
-
     bool arduinoConnected;
 
-    double height = -0.07;
+    /*** Stand Params */
+    double height = -0.14; // Control height off of the ground
+    double stepOff = 0.2; // controls foot offset from coxa rotation
+    double legAng = 90; // Control control angle of leg relative to world frame
+    double flush = 0; // controle
 
-    double standPos[18] = {
-        0.235586, 0.362771, height,
-        0.382555, 0, height,
-        0.235586, -0.362771, height,
-        -0.235586, -0.362771, height,
-        -0.382555, 0, height,
-        -0.235586, 0.362771, height};
+    /*** Step Params */
+    double stepRadius = 0.08;
+    double stepHeight = 0.2;
 
-    // constexpr static float coxaX = 0.044925;
-    // constexpr static float coxaZ = 0.01065;
-    // constexpr static float femurX = 0.118314;
-    // constexpr static float tibiaX = 0.221426;
+    double standPos[18];
+    double standIntermediatePos[18];
 
+    // Leg Dims
     constexpr static float coxaX = 0.044924;
     constexpr static float coxaZ = 0.010656;
     constexpr static float femurX = 0.118313;
     constexpr static float tibiaX = 0.221170;
 
-    // const vector<int> angleInits = {96, 94, 17};
-
+    // Leg Information
     const vector<int> angleInits = {90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17, 90, 45, 17};
-
+    const vector<double> bodyLegStandAngs = {legAng*M_PI/180, 0*M_PI/180, -legAng*M_PI/180, (-180+legAng)*M_PI/180, 180*M_PI/180, (180-legAng)*M_PI/180};
     const vector<float> bodyLegOffsets = {0.180, 0.130, 0.180, 0.180, 0.130, 0.180};
     const vector<float> femurRotation= {M_PI_2, M_PI_2, M_PI_2, -M_PI_2, -M_PI_2, -M_PI_2};
     const vector<float> bodyLegAngles = {57*M_PI/180, 0*M_PI/180, -57*M_PI/180, -123*M_PI/180, 180*M_PI/180, 123*M_PI/180};
 
-    double stepRadius = 0.08;
-    double stepHeight = 0.1;
-
+    // Walking sequence controls
     double lastAngle = 0;
     vector<bool> standing = {0,1,0,1,0,1};
 };
