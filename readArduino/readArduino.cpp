@@ -1,6 +1,10 @@
 #include "../modules/custom/arduinoConnection/arduinoController.h"
 #include <iostream>
 #include <cstdlib>
+#include <chrono>
+#include <iomanip>
+#include <ctime>
+
 
 using namespace std;
 
@@ -13,6 +17,10 @@ void readAndPrintData(ArduinoController& arduino) {
 }
 
 int main() {
+    auto now = chrono::system_clock::now();
+    time_t currentTime = chrono::system_clock::to_time_t(now);
+    tm* localTime = localtime(&currentTime);
+    cout << "readArduino START: " << put_time(localTime, "%Y-%m-%d %H:%M:%S");
     try {
         ArduinoController arduino("/dev/ttyACM0", 921600);
         readAndPrintData(arduino);
